@@ -1,0 +1,24 @@
+from pydantic import BaseModel
+
+class OncologoCreate(BaseModel):
+    correo_electronico: str
+    contrasenia: str
+    nombre: str
+    apellido: str
+    institucion: str
+    telefono: str
+
+class OncologoLogin(BaseModel):
+    correo_electronico: str
+    contrasenia: str
+
+class OncologoResponsePerfil(BaseModel):
+    id_usuario: int
+    correo_electronico: str
+    nombre: str
+    apellido: str
+    institucion: str
+    telefono: str
+
+    class Config:
+        orm_mode = True
