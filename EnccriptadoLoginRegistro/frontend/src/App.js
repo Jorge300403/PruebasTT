@@ -4,15 +4,20 @@ import PaginaLogin from './components/Login';
 import PaginaRegistroOncologo from './components/RegistroOncologo';
 import PaginaListaPacientess from './components/Pacientes';
 import PaginaCorreoNoVerificado from './components/CorreoNoVerificado';
+import PaginaRutaPrivada from './components/RutaPrivada';
+import PaginaSliderLoginRegistro from './components/ContenedorLoginRegistro';
 
 function App() {
   return (
+    //Traemos todas la rutas uqe vamos a utilizar, siendo la prinicpal la del login
+    //En el caso de las rutas que se tengan que hacer a travez de un login, la insertamos
+    //en la parte de ruta privada, para que primero verifique el token y despues habra la pagina correspondiente
     <Router>
       <Routes>
-        <Route path="/" element={<PaginaLogin />} />        
+        <Route path="/" element={<PaginaSliderLoginRegistro />} />        
         <Route path="/registro_oncologo" element={<PaginaRegistroOncologo />} />
-        <Route path='/lista_pacientes' element={<PaginaListaPacientess />} />
-        <Route path='/correo-no-verificado' element={<PaginaCorreoNoVerificado/>} />
+        <Route path='/lista_pacientes' element={<PaginaRutaPrivada><PaginaListaPacientess/></PaginaRutaPrivada>} />
+        <Route path='/correo-no-verificado' element={<PaginaCorreoNoVerificado></PaginaCorreoNoVerificado>} />
       </Routes>
     </Router>
   );

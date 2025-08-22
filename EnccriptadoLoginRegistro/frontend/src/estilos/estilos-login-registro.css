@@ -1,0 +1,70 @@
+.auth-container {
+    display: flex;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+    transition: all 0.8s ease;
+}
+
+.auth-panel {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.8s ease;
+}
+
+.auth-left img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.login-active .auth-left {
+    transform: translateX(0);
+}
+.login-active .auth-right {
+    transform: translateX(0);
+}
+
+.registro-active .auth-left {
+    transform: translateX(-100%);
+}
+.registro-active .auth-right {
+    transform: translateX(-100%);
+}
+
+/* Opcional: agregar sombra o fondo al formulario */
+.auth-right > div.card {
+    transition: all 0.8s ease;
+}
+
+
+#header-login-registro{
+    background-color: #005B99 !important;
+    
+  font-family: 'Iknut Antiqua', serif;
+}
+
+#contenedor-form-login{
+    background-color: #F5F6F5 !important;
+}
+
+.form-label {
+  font-family: 'Iknut Antiqua', serif;
+  font-size: 20px;
+  color: #005B99;
+}
+
+#titulo-login{
+font-size: 40px;
+  font-family: 'Iknut Antiqua', serif;
+  color: #005B99;
+}
+
+button{
+    background-color: #4CAF50 !important;
+    font-family: 'Iknut Antiqua', serif;
+    width: 150px !important;
+}
