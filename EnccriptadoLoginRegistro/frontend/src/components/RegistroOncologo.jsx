@@ -84,7 +84,7 @@ export default function PaginaRegistroOncologo({moverseLogin}) {
                 telefono
             });
             alert("Oncólogo registrado correctamente");
-            navigate("/");
+            moverseLogin();
         } catch (err) {
             alert(err.response?.data?.detail || "Error al registrar");
         }

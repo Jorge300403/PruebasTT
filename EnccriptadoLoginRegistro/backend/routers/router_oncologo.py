@@ -9,7 +9,7 @@ from fastapi.security import OAuth2PasswordBearer
 from database import SessionLocal
 from jose import JWTError, jwt
 from correos import verificar_correo
-
+from validaciones import encriptar_aes
 
 
 # Le asignamos el prefijo de oncologo para la peticiones que solo son del oncologo
@@ -115,11 +115,11 @@ def get_oncologo_perfil(usuario_en_token: Usuario = Depends(obtener_usuario_actu
     #Si todo esta bien y se encontro, entonces le asignamos los valores al schema dado que eso es lo que debemos de regresar
     return schema_oncologo.OncologoResponsePerfil(
         id_usuario = usuario_en_token.id_usuario,
-        correo_electronico = usuario_en_token.correo_electronico,
-        nombre = oncologo_en_token.nombre,
-        apellido = oncologo_en_token.apellido,
-        institucion = oncologo_en_token.institucion,
-        telefono = oncologo_en_token.telefono
+        correo_electronico = encriptar_aes.desencriptar(usuario_en_token.correo_electronico),
+        nombre = encriptar_aes.desencriptar(oncologo_en_token.nombre),
+        apellido = encriptar_aes.desencriptar(oncologo_en_token.apellido),
+        institucion = encriptar_aes.desencriptar(oncologo_en_token.institucion),
+        telefono = encriptar_aes.desencriptar(oncologo_en_token.telefono)
     )
 
 
@@ -136,7 +136,7 @@ def verify_email(token: str = Query(...), db: Session = Depends(get_db)): #Recib
         raise HTTPException(status_code=400, detail="Token inválido o expirado")
 
 
-    usuario_en_token = db.query(Usuario).filter(Usuario.correo_electronico == correo_electronico_decodificado).first() #Obtenemos el usuario correpsondinte al correo que viene en el token
+    usuario_en_token = OncologoDAO.obtener_usuario_por_coreo(db, correo_electronico_decodificado) #Obtenemos el usuario correpsondinte al correo que viene en el token
     
     
     if not usuario_en_token:
