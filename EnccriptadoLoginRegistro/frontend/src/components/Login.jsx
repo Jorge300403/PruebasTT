@@ -57,6 +57,12 @@ export default function PaginaLogin({moverseRegistro} ) {
                             <button type="submit" className="btn btn-primary w-100">Inicar sesión</button>
                         </form>
                         <p className="text-center mt-3">
+                            ¿Olvidaste tu contraseña? {" "}
+                            <span className="link-primary" style={{cursor: "pointer"}} onClick={() => navigate("/olvido-contrasenia")}>
+                                Restablecer
+                            </span>
+                        </p>
+                        <p className="text-center mt-3">
                             ¿No tienes cuenta?{" "}
                             <span className="link-primary" style={{cursor: "pointer"}} onClick={moverseRegistro}>
                                 Regístrate

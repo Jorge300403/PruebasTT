@@ -9,6 +9,7 @@ ALGORITMO_HASH = "HS256"
 # Definimos los timepos de expiración de cada uno de los token
 TIEMPO_EXPIRACION_TOKEN_ENTRADA = 60
 TIEMPO_EXPIRACION_TOKEN_VERIFICACION_CORREO = 60 * 24
+TIEMPO_EXPIRACION_TOKEN_RESTABLCER_CONTRASENIA = 60
 
 
 # Cremos la funcion para encriptar la contraseña
@@ -50,3 +51,24 @@ def decodificar_token_verificar_correo(token: str) -> str:
     if not correo_electronico:
         raise JWTError("Invalid token payload")
     return correo_electronico
+
+
+#Funcion para crear el token de restabelcer contraseña
+def crear_token_restablecer_contrasenia(id_usuario: str) -> str:
+    codificar_token = {
+        "sub": id_usuario,
+        "purpose": "restablecer_contrasenia",
+        "exp": datetime.utcnow() + timedelta(minutes=TIEMPO_EXPIRACION_TOKEN_RESTABLCER_CONTRASENIA),
+    }
+    return jwt.encode(codificar_token, LLAVE_HASH, algorithm=ALGORITMO_HASH)
+
+
+# Función para decodificar el token y así poder verificar el correo
+def decodificar_token_restablecer_contrasenia(token: str) -> str:
+    datos_decodificados = jwt.decode(token, LLAVE_HASH, algorithms=[ALGORITMO_HASH])
+    if datos_decodificados.get("purpose") != "restablecer_contrasenia":
+        raise JWTError("Invalid token purpose")
+    id_usuario: str  = datos_decodificados.get("sub")
+    if not id_usuario:
+        raise JWTError("Invalid token payload")
+    return id_usuario

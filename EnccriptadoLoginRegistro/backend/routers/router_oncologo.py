@@ -10,6 +10,7 @@ from database import SessionLocal
 from jose import JWTError, jwt
 from correos import verificar_correo
 from validaciones import encriptar_aes
+from correos import correo_restablecer_contrasenia
 
 
 # Le asignamos el prefijo de oncologo para la peticiones que solo son del oncologo
@@ -152,3 +153,39 @@ def verify_email(token: str = Query(...), db: Session = Depends(get_db)): #Recib
 
 
     return {"msg": "Correo verificado correctamente"} #Debemos de mostrar una pagina de exito de verificación
+
+
+@router.post("/olvido-contrasenia")
+def restablecer_contrasenia(datos_usuario: schema_oncologo.OncologoCorreo, db: Session = Depends(get_db)): #Recibimos el correo del oncologo
+    validacion_usuario = OncologoDAO.obtener_usuario_por_coreo(db, datos_usuario.correo_electronico) # Obtenemos el usuario que se haya encontrado a partir de sus correo electronico
+    
+    #Si existen entonces debemos de mandar el correo electronico para restablecer la contraseña
+    if validacion_usuario:
+        token = autentificacion_password.crear_token_restablecer_contrasenia(str(validacion_usuario.id_usuario)) #Creamos token para enviar correo y restablecer contrasenia
+        print("token generado: " + token)
+        try:
+            correo_restablecer_contrasenia.enviar_correo_restablecer_contrasenia(validacion_usuario.correo_electronico, token) #Enviamos el correo, con el link del token 
+        except Exception as e:
+            print("Error enviando email:", e)
+
+        return {"msg": "Usuario registrado. Revisa tu correo para restablecer contraseña."} 
+    else:        
+        raise HTTPException(status_code=401, detail="Correo no existente")
+    
+
+@router.post("/restablecer-contrasenia")
+def restablecer_contrasenia(datos_usuario: schema_oncologo.OncologoUpdatePassword , db: Session = Depends(get_db)):
+    # Decodificamos el correo en el token
+    try:
+        id_usuario_en_token = autentificacion_password.decodificar_token_restablecer_contrasenia(datos_usuario.token)
+    except JWTError:
+        raise HTTPException(status_code=400, detail="Token inválido o expirado")
+    
+    usuario_en_token = db.query(Usuario).filter(Usuario.id_usuario == id_usuario_en_token).first()
+    if not usuario_en_token:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    OncologoDAO.actualizar_contrasenia(db, usuario_en_token, datos_usuario.contrasenia)
+    
+    return {"msg": "Contraseña restablecida correctamente"}
+    

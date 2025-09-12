@@ -43,3 +43,10 @@ def crear_oncologo(db: Session, datos_oncologo: schema_oncologo.OncologoCreate):
     db.refresh(nuevo_oncologo)
 
     return nuevo_usuario
+
+def actualizar_contrasenia(db: Session, usuario_actualizar: Usuario, nueva_contrasenia: str):    
+    hashed_contrasenia = autentificacion_password.hash_contrasenia(nueva_contrasenia)
+    usuario_actualizar.contrasenia = hashed_contrasenia
+    db.commit()
+    db.refresh(usuario_actualizar)
+    return usuario_actualizar

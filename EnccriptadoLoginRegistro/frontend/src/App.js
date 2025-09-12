@@ -6,6 +6,8 @@ import PaginaListaPacientess from './components/Pacientes';
 import PaginaCorreoNoVerificado from './components/CorreoNoVerificado';
 import PaginaRutaPrivada from './components/RutaPrivada';
 import PaginaSliderLoginRegistro from './components/ContenedorLoginRegistro';
+import PaginaOlvidoContrasenia from './components/OlvidoContrasenia';
+import PaginaRestablecerContrasenia from './components/RestablecerContrasenia';
 
 function App() {
   return (
@@ -18,6 +20,8 @@ function App() {
         <Route path="/registro_oncologo" element={<PaginaRegistroOncologo />} />
         <Route path='/lista_pacientes' element={<PaginaRutaPrivada><PaginaListaPacientess/></PaginaRutaPrivada>} />
         <Route path='/correo-no-verificado' element={<PaginaCorreoNoVerificado></PaginaCorreoNoVerificado>} />
+        <Route path='/olvido-contrasenia' element={<PaginaOlvidoContrasenia></PaginaOlvidoContrasenia>} />
+        <Route path='/restablecer-contrasenia' element={<PaginaRestablecerContrasenia></PaginaRestablecerContrasenia>} />
       </Routes>
     </Router>
   );

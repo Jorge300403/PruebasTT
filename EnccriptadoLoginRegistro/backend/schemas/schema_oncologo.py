@@ -12,6 +12,13 @@ class OncologoLogin(BaseModel):
     correo_electronico: str
     contrasenia: str
 
+class OncologoUpdatePassword(BaseModel):
+    token: str
+    contrasenia: str
+
+class OncologoCorreo(BaseModel):
+    correo_electronico: str    
+
 class OncologoResponsePerfil(BaseModel):
     id_usuario: int
     correo_electronico: str
