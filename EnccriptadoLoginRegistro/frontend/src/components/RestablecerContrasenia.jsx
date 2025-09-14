@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import api from "../services/api";
 
-export default function PaginaRestablecerContrasenia({ moverseLogin }) {
+export default function PaginaRestablecerContrasenia({ }) {
     const [contrasenia, setContrasenia] = useState("");
     const [confirmarContrasenia, setConfirmarContrasenia] = useState("");    
     const location = useLocation();
@@ -46,7 +46,7 @@ export default function PaginaRestablecerContrasenia({ moverseLogin }) {
         try {
             await api.post("/oncologo/restablecer-contrasenia", { token, contrasenia });
             alert("Contraseña restablecida correctamente");
-            moverseLogin();
+            navigate("/");
         } catch (err) {
             console.error(err); // Para depuración
             alert(err.response?.data?.detail || "Error desconocido"); // Fallback

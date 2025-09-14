@@ -6,6 +6,7 @@ import { useNavigate, Link } from "react-router-dom";
 import registroImage from "../imagenes/cancer-mama-login.jpg";
 
 export default function PaginaRegistroOncologo({moverseLogin}) {
+    //Definimos todas la variables que vamos a utilizar
     const [correo_electronico, setCorreoElectronico] = useState("");
     const [contrasenia, setContrasenia] = useState("");
     const [confirmarContrasenia, setConfirmarContrasenia] = useState("");
@@ -16,6 +17,8 @@ export default function PaginaRegistroOncologo({moverseLogin}) {
     const [errores, setErrores] = useState({});
     const navigate = useNavigate();
 
+
+    //Definimos las expresiones regulares para la validación de los datos
     const regex = {
         nombre: /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{1,100}$/,
         apellido: /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{1,100}$/,
@@ -25,8 +28,11 @@ export default function PaginaRegistroOncologo({moverseLogin}) {
         telefono: /^\d{10}$/,
     };
 
+
+    //Definimos cada uno de los mensajes de verificación
     const mensajesVerificacion = (name, value) => {
         let message = "";
+        //Creamos cada uno de los casos, en caso de que no cumpla creamos el mensaje de error
         switch (name) {
             case "nombre":
                 if (!regex.nombre.test(value)) message = "Solo letras, máximo 100 caracteres.";
@@ -52,9 +58,12 @@ export default function PaginaRegistroOncologo({moverseLogin}) {
             default:
                 break;
         }
+        //Guardamos la lista de todos los errores y los enviamos
         setErrores((prev) => ({ ...prev, [name]: message }));
     };
 
+
+    //Definimos función para verificar si hay algun error
     const validarErrores = () => {
         return (
             nombre &&
@@ -68,14 +77,21 @@ export default function PaginaRegistroOncologo({moverseLogin}) {
         );
     };
 
+
+    //Definimos la funcion principal para la petición con el back
     const handleRegister = async (e) => {
         e.preventDefault();
+
+        //Primero verificar que no haya errores, encaso de que haya alertamos
         if (!validarErrores()) {
             alert("Por favor corrige los errores antes de enviar.");
             return;
         }
+
+        //Si los datos estan correctos, los enviamos
         try {
-            await api.post("/oncologo/register", {
+            //Conectamos con el back y enviamos los datos del formulario
+            const respuesta_back = await api.post("/oncologo/register", {
                 correo_electronico,
                 contrasenia,
                 nombre,
@@ -83,10 +99,12 @@ export default function PaginaRegistroOncologo({moverseLogin}) {
                 institucion,
                 telefono
             });
-            alert("Oncólogo registrado correctamente");
+            //Si se logro el registro, mostramos el mensaje de exito
+            alert(respuesta_back.data.msg);
             moverseLogin();
         } catch (err) {
-            alert(err.response?.data?.detail || "Error al registrar");
+            //Si no se logto el registro mostramos el error de que fue lo que paso
+            alert(err.response?.data?.detail);
         }
     };
 

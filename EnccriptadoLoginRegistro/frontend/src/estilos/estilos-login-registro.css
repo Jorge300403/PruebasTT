@@ -51,6 +51,15 @@
     background-color: #F5F6F5 !important;
 }
 
+#btn-reenviar-verificacion{
+    width: 50% !important;
+    align-self: center !important;
+}
+
+#btn-reenviar-verificacion{    
+    background-color: #005B99 !important;
+}
+
 .form-label {
   font-family: 'Iknut Antiqua', serif;
   font-size: 20px;

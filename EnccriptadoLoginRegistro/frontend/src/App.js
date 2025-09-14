@@ -8,6 +8,7 @@ import PaginaRutaPrivada from './components/RutaPrivada';
 import PaginaSliderLoginRegistro from './components/ContenedorLoginRegistro';
 import PaginaOlvidoContrasenia from './components/OlvidoContrasenia';
 import PaginaRestablecerContrasenia from './components/RestablecerContrasenia';
+import PaginaCorreoVerificadoExito from './components/CorreoVerificadoExito';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route path='/correo-no-verificado' element={<PaginaCorreoNoVerificado></PaginaCorreoNoVerificado>} />
         <Route path='/olvido-contrasenia' element={<PaginaOlvidoContrasenia></PaginaOlvidoContrasenia>} />
         <Route path='/restablecer-contrasenia' element={<PaginaRestablecerContrasenia></PaginaRestablecerContrasenia>} />
+        <Route path='/correo-verificado' element={<PaginaCorreoVerificadoExito></PaginaCorreoVerificadoExito>} />
       </Routes>
     </Router>
   );

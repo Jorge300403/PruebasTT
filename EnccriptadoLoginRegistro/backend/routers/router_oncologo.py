@@ -11,6 +11,11 @@ from jose import JWTError, jwt
 from correos import verificar_correo
 from validaciones import encriptar_aes
 from correos import correo_restablecer_contrasenia
+from database import get_db
+from fastapi.responses import RedirectResponse
+
+
+FRONTEND_URL = "http://localhost:3000"
 
 
 # Le asignamos el prefijo de oncologo para la peticiones que solo son del oncologo
@@ -23,93 +28,127 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="oncologo/login")
 
 
 
-# Creamos la sesion con la bd
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-
-# Peticion para registrar un nuevo oncologo
+#Peticion para registrar un nuevo oncologo 
 @router.post("/register")
-def register(datos_oncologo: schema_oncologo.OncologoCreate, db: Session = Depends(get_db)): #Recibimos el schema con los datos del formulario de registro del oncologo
-    validacion_usuario = OncologoDAO.obtener_usuario_por_coreo(db, datos_oncologo.correo_electronico) # Obtenemos el usuario que se haya encontrado a partir de sus correo electronico
+#Debemos de recibir los datos para registar el oncologo, y la sesion la cual la obtenemos
+def register(datos_oncologo: schema_oncologo.OncologoCreate, db: Session = Depends(get_db)): 
+
+    #Debemos de obtener los datos que se ingresan en el formulario del front
+    validacion_usuario = OncologoDAO.obtener_usuario_por_coreo(db, datos_oncologo.correo_electronico) 
+
+    #Debemos de verificar que el correo que se ingreso no este registrado previamente
     if validacion_usuario:
-        raise HTTPException(status_code=400, detail="El correo ya está registrado") #Si devuleve algo es pq ya esta registrado ese correo, entonces por eso mandamos el error
-    OncologoDAO.crear_oncologo(db, datos_oncologo) #Si no devuelve nada, entonces creamos al oncologo
+        #Si el correo ya esta registrado, entonces mandamos el mensaje de que ya existe este usuario
+        raise HTTPException(status_code=400, detail="El correo ha sido registrado previamente") 
+    #Si no esta registrado, entonces creamos el nuevo oncologo, mandamos la db y los datos del formulario
+    OncologoDAO.crear_oncologo(db, datos_oncologo) 
 
-
-    #Una vez creado entonces hacemos el proceso de validación de cuenta
-    token = autentificacion_password.crear_token_verificar_correo(datos_oncologo.correo_electronico.strip()) #Creamos token para verificar el correo
+    #Una vez creado entonces hacemos el proceso de validación de cuenta, creamos el token a partir del correo electronico
+    token = autentificacion_password.crear_token_verificar_correo(datos_oncologo.correo_electronico.strip()) 
     try:
-        verificar_correo.enviar_correo_verificacion(datos_oncologo.correo_electronico.strip(), token) #Enviamos el correo, con el link del token para que verifique la cuenta, con solo dar clic ya se verifica
+        #Enviamos el correo con el link para la verificación del correo enviado el correo y el token
+        verificar_correo.enviar_correo_verificacion(datos_oncologo.correo_electronico.strip(), token)
     except Exception as e:
+        #En caso de que no se logre enviar el correo, mandamos un mensaje de que ocurrio un error interno
         print("Error enviando email:", e)
 
-    return {"msg": "Registro exitoso. Revisa tu correo para verificar la cuenta."} 
+    #Si todo esta correcto, regresamos el mensaje de exito
+    return {"msg": "Cuenta creada correctamente. Revisa tu correo para verificar la cuenta."} 
 
 
 
-# Peticion para hacer el login
-@router.post("/login")
-def login(datos_oncologo: schema_oncologo.OncologoLogin, db: Session = Depends(get_db)): #Recibimos el schema con los datos del formulario del login del oncologo
-    validacion_usuario = OncologoDAO.obtener_usuario_por_coreo(db, datos_oncologo.correo_electronico) #Buscamos en la bd el usuario a partir del correo que ingreso en el formulario del login
-   
+
+
+#Peticion para reenviar el correo de verificacion de cuenta
+@router.post("/reenviar-verificacion")
+#Debemos el correo del oncologo, y la sesion la cual la obtenemos
+def reenviar_verificacion_cuenta(datos_oncologo: schema_oncologo.OncologoCorreo, db: Session = Depends(get_db)): 
+    #Debemos de obtener los datos que se ingresan en el formulario del front
+    validacion_usuario = OncologoDAO.obtener_usuario_por_coreo(db, datos_oncologo.correo_electronico) 
     
-    #Si existen errores, entonces mostramos los mensajes
+    #Debemos de verificar que el correo que se ingreso no este registrado previamente
+    if validacion_usuario:
+        #Si el correo existe, entonces debemos de enviar el token otra vez, pero uno nuevo
+        token = autentificacion_password.crear_token_verificar_correo(encriptar_aes.desencriptar(validacion_usuario.correo_electronico).strip()) 
+        try:
+            #Enviamos el correo con el link para la verificación del correo enviado el correo y el token
+            verificar_correo.enviar_correo_verificacion(datos_oncologo.correo_electronico.strip(), token)
+        except Exception as e:
+            #En caso de que no se logre enviar el correo, mandamos un mensaje de que ocurrio un error interno
+            print("Error enviando email:", e)
+
+        #Si todo esta correcto, regresamos el mensaje de exito
+        return {"msg": "Si el correo existe hemos enviado el enlace para verificar cuenta. Revisa tu correo para verificar la cuenta."} 
+
+
+
+
+
+#Peticion para hacer el login
+@router.post("/login")
+#Debemos de recibir el correo y contraseña del oncologo y la db
+def login(datos_oncologo: schema_oncologo.OncologoLogin, db: Session = Depends(get_db)): 
+
+    #Primero hacemos la verificación si es que esta registrado este usuario a partir de su correo
+    validacion_usuario = OncologoDAO.obtener_usuario_por_coreo(db, datos_oncologo.correo_electronico)
+   
     if not validacion_usuario:
-        raise HTTPException(status_code=401, detail="Correo no existente")
+        #Si el correo no existe entonces mostramos un mensaje 
+        raise HTTPException(status_code=401, detail="El correo ingresado no está registrado")
     
     if not autentificacion_password.verificar_contrasenia(datos_oncologo.contrasenia, validacion_usuario.contrasenia):
-        raise HTTPException(status_code=401, detail="Credenciales invalidas")
+        #Verificamos la contraseña, si es incorrecta entoncces mostramos mensaje, 
+        raise HTTPException(status_code=401, detail="La contraseña es incorrecta")
     
     if not validacion_usuario.es_verificado:
+        #Si el correo aun no esta verificado entonces mostramos mensaje
         raise HTTPException(status_code=403, detail="Correo no verificado")
-
     
     #Si no hay errores, creamos el token de acceso donde guardamos el id del correo
     token = autentificacion_password.crear_token_acceso(str(validacion_usuario.id_usuario))
+
+    #Si todo salio bien entones regresamos el token y el tipo de token
     return {"access_token": token, "token_type": "bearer"}
 
 
 
-# Peticion para validar el token de login y obtener al usuario actual
-def obtener_usuario_actual(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)): #Recibimos el token que se esta moviendo en el front
-    
 
-    #Si es valido entonces debemos obtener el usuario actual
+
+# Peticion para validar el token de login y obtener al usuario actual, recibimos el token que esta en la sesion
+def obtener_usuario_actual(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)): 
+    
     try:
-        datos_decodificados = jwt.decode(token, autentificacion_password.LLAVE_HASH, algorithms=[autentificacion_password.ALGORITMO_HASH]) #Decodificamos el token que envía el front
-        id_usuario_en_token: str = datos_decodificados.get("sub") #Obtenemos el id del usuario que se logueo
-        if id_usuario_en_token is None:
-            raise HTTPException(status_code=401, detail="Token inválido o expirados", headers={"WWW-Authenticate": "Bearer"})
+        #Decodificamos el token para obtener el id del usuario
+        id_usuario_en_token = autentificacion_password.decodificar_token_acceso(token)
     except JWTError:
-            raise HTTPException(status_code=401, detail="Token inválido o expirados", headers={"WWW-Authenticate": "Bearer"})
+        #Si no es valido entonces mostramos el error
+        raise HTTPException(status_code=401, detail="Token inválido o expirados")
 
     #Si es valido obtenemos el suario completo que corresponde con el id que se guardo en el token
-    usuario_en_token = db.query(Usuario).filter(Usuario.id_usuario == int(id_usuario_en_token)).first()
+    usuario_en_token = OncologoDAO.obtener_usuario_por_id(db, id_usuario_en_token)
 
-
-    #Si no se encuentra el usario entonces volvemos a marcar un error
     if usuario_en_token is None:
-            raise HTTPException(status_code=401, detail="Token inválido o expirados", headers={"WWW-Authenticate": "Bearer"})
-    
+        #Si no hay un usario regresamos el error
+        raise HTTPException(status_code=401, detail="Token inválido o expirados")
     
     #Debemos de regresar el usuario encontrado
     return usuario_en_token
 
 
-# Peticion para obeter datos perfil del oncologo
-@router.get("/perfil", response_model=schema_oncologo.OncologoResponsePerfil) #Debemos de regresar la infromacion del schema de corresponde al perfil del oncologo
+
+
+
+# Peticion para obeter datos perfil del oncologo, debemos de regresar la infromacion del schema de corresponde al perfil del oncologo
+@router.get("/perfil", response_model=schema_oncologo.OncologoResponsePerfil) 
+
+#Primero debemos de obtener el usuario con el que se inicio sesion, para ello accedemos al token que tiene sesion activa
 def get_oncologo_perfil(usuario_en_token: Usuario = Depends(obtener_usuario_actual), db: Session = Depends(get_db)):
-    oncologo_en_token = db.query(Oncologo).filter(Oncologo.id_usuario == usuario_en_token.id_usuario).first() #Obtenemos el oncologoq ue corresponda con el id que esta guardado en el token
     
+    #Obteneos los datos del oncologo a partir del usario en token que regresa
+    oncologo_en_token = OncologoDAO.obtener_oncologo_por_id(db, usuario_en_token.id_usuario)
     
-    # Si no se encontro entonces marcamos el error
-    if not oncologo_en_token:
+    if not oncologo_en_token:    
+        # Si no se encontro entonces marcamos el error
         raise HTTPException(status_code=404, detail="Oncólogo no encontrado")
 
 
@@ -125,34 +164,35 @@ def get_oncologo_perfil(usuario_en_token: Usuario = Depends(obtener_usuario_actu
 
 
 
+
+
 # Petición para hacer la verificación del correo
 @router.get("/verificar-correo")
-def verify_email(token: str = Query(...), db: Session = Depends(get_db)): #Recibimos el token en forma stringquery
+#Debemos de recibir el token el cual obtenemos el enlace y la sesion
+def verificar_email(token: str = Query(...), db: Session = Depends(get_db)): 
     
-    
-    # Decodificamos el correo en el token
-    try:
+    try: 
+        # Decodificamos el token para obtener el correo
         correo_electronico_decodificado = autentificacion_password.decodificar_token_verificar_correo(token)
     except JWTError:
+        #Si hay un error entonces regresamos el mensaje de token invalido o expirado
         raise HTTPException(status_code=400, detail="Token inválido o expirado")
 
-
-    usuario_en_token = OncologoDAO.obtener_usuario_por_coreo(db, correo_electronico_decodificado) #Obtenemos el usuario correpsondinte al correo que viene en el token
-    
+    #Obtenemos el usuario correspondiente segun el correo que esta en el token 
+    usuario_en_token = OncologoDAO.obtener_usuario_por_coreo(db, correo_electronico_decodificado) 
     
     if not usuario_en_token:
+        #Si no existe el usuario entonces mandamos mensaje de error
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
     if usuario_en_token.es_verificado:
-        return {"msg": "El correo ya estaba verificado"} #Debemos de mostrar una pagina de exito de verificación
+        #Si el correo ya esta verificado mostramos la pantalla
+        return RedirectResponse(url = f"{FRONTEND_URL}/correo-verificado")
 
-    
-    usuario_en_token.es_verificado = True #Cambaimos el estado de verificadoa true
-    db.add(usuario_en_token)
-    db.commit()
-
-
-    return {"msg": "Correo verificado correctamente"} #Debemos de mostrar una pagina de exito de verificación
+    #Si no estaba verificado entonces lo hacemos, y cambiaos el estadi a true y actualizamos en la bd
+    OncologoDAO.verificar_correo(db, usuario_en_token)
+    #Si se hizo exitosamente la verifcacion del correo, mostramos la pantalla de verificación exitosa
+    return RedirectResponse(url = f"{FRONTEND_URL}/correo-verificado")
 
 
 @router.post("/olvido-contrasenia")
@@ -181,7 +221,7 @@ def restablecer_contrasenia(datos_usuario: schema_oncologo.OncologoUpdatePasswor
     except JWTError:
         raise HTTPException(status_code=400, detail="Token inválido o expirado")
     
-    usuario_en_token = db.query(Usuario).filter(Usuario.id_usuario == id_usuario_en_token).first()
+    usuario_en_token = OncologoDAO.obtener_usuario_por_id(db, id_usuario_en_token)
     if not usuario_en_token:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     

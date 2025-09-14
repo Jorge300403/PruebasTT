@@ -18,6 +18,16 @@ def obtener_usuario_por_coreo(db: Session, correo_electronico: str):
     return None
 
 
+#Cremoa sla funcion para obtener el usuario a aprtir del id
+def obtener_usuario_por_id(db: Session, id_usuario: int):
+    return db.query(Usuario).filter(Usuario.id_usuario == id_usuario).first()
+
+
+#Cremoa sla funcion para obtener el oncologo a aprtir del id
+def obtener_oncologo_por_id(db: Session, id_usuario: int):
+    return db.query(Oncologo).filter(Oncologo.id_usuario == id_usuario).first()
+
+
 # Creamos la funcion para crear un nuevo oncologo
 def crear_oncologo(db: Session, datos_oncologo: schema_oncologo.OncologoCreate):
     hashed_contrasenia = autentificacion_password.hash_contrasenia(datos_oncologo.contrasenia)
@@ -49,4 +59,11 @@ def actualizar_contrasenia(db: Session, usuario_actualizar: Usuario, nueva_contr
     usuario_actualizar.contrasenia = hashed_contrasenia
     db.commit()
     db.refresh(usuario_actualizar)
+    return usuario_actualizar
+
+
+def verificar_correo(db: Session, usuario_actualizar: Usuario):
+    usuario_actualizar.es_verificado = True 
+    db.add(usuario_actualizar)
+    db.commit()
     return usuario_actualizar

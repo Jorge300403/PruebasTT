@@ -1,20 +1,29 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import loginImage from "../imagenes/cancer-mama-login.jpg";
 
 export default function PaginaLogin({moverseRegistro} ) {
+    //Definimos las variales que vamos a ocupoar en el formualrio
     const [correo_electronico, setCorreoElectronico] = useState("");
     const [contrasenia, setContrasenia] = useState("");
     const navigate = useNavigate();
 
+
+    //Definimos la funcion principal
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            const res = await api.post("/oncologo/login", { correo_electronico, contrasenia });
-            localStorage.setItem("token", res.data.access_token);
+            //Hacemos la petición al back enviando las credenciales
+            const respuesta_back = await api.post("/oncologo/login", { correo_electronico, contrasenia });
+            
+            //Obtenemos el token que regrese el back
+            localStorage.setItem("token", respuesta_back.data.access_token);
+
+            //Si esta correcto entonces navegamos a la pagina principal o el board
             navigate("/lista_pacientes");
         } catch (error) {
+            //Si no esta verificado entonces mandamos la pagina para verificar su correo
             if (error.response?.status === 403 && error.response?.data.detail === "Correo no verificado") {
                 navigate("/correo-no-verificado", { state: { correo_electronico } });
             } else if(error.response) {
