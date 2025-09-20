@@ -21,7 +21,7 @@ export default function PaginaLogin({moverseRegistro} ) {
             localStorage.setItem("token", respuesta_back.data.access_token);
 
             //Si esta correcto entonces navegamos a la pagina principal o el board
-            navigate("/lista_pacientes");
+            navigate("/oncologo/lista-pacientes");
         } catch (error) {
             //Si no esta verificado entonces mandamos la pagina para verificar su correo
             if (error.response?.status === 403 && error.response?.data.detail === "Correo no verificado") {

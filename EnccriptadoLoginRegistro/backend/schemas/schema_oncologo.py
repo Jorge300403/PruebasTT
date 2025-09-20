@@ -8,6 +8,12 @@ class OncologoCreate(BaseModel):
     institucion: str
     telefono: str
 
+class OncologoUpdate(BaseModel):
+    nombre: str
+    apellido: str
+    institucion: str
+    telefono: str
+
 class OncologoLogin(BaseModel):
     correo_electronico: str
     contrasenia: str

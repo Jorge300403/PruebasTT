@@ -73,7 +73,11 @@ font-size: 40px;
 }
 
 button{
-    background-color: #4CAF50 !important;
     font-family: 'Iknut Antiqua', serif;
     width: 150px !important;
+}
+
+#contenedorpriebas{
+    background-color: red !important;
+    color: green !important;
 }

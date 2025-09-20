@@ -195,6 +195,9 @@ def verificar_email(token: str = Query(...), db: Session = Depends(get_db)):
     return RedirectResponse(url = f"{FRONTEND_URL}/correo-verificado")
 
 
+
+
+
 @router.post("/olvido-contrasenia")
 def restablecer_contrasenia(datos_usuario: schema_oncologo.OncologoCorreo, db: Session = Depends(get_db)): #Recibimos el correo del oncologo
     validacion_usuario = OncologoDAO.obtener_usuario_por_coreo(db, datos_usuario.correo_electronico) # Obtenemos el usuario que se haya encontrado a partir de sus correo electronico
@@ -213,6 +216,9 @@ def restablecer_contrasenia(datos_usuario: schema_oncologo.OncologoCorreo, db: S
         raise HTTPException(status_code=401, detail="Correo no existente")
     
 
+
+
+
 @router.post("/restablecer-contrasenia")
 def restablecer_contrasenia(datos_usuario: schema_oncologo.OncologoUpdatePassword , db: Session = Depends(get_db)):
     # Decodificamos el correo en el token
@@ -228,4 +234,21 @@ def restablecer_contrasenia(datos_usuario: schema_oncologo.OncologoUpdatePasswor
     OncologoDAO.actualizar_contrasenia(db, usuario_en_token, datos_usuario.contrasenia)
     
     return {"msg": "Contraseña restablecida correctamente"}
-    
+
+
+
+
+
+@router.put("/editar")
+def editar_datos_oncologo(datos_actualizados: schema_oncologo.OncologoUpdate, usuario_en_token: Usuario = Depends(obtener_usuario_actual), db: Session = Depends(get_db)):
+    #Debemos de obtener los datos que se ingresan en el formulario del front
+    validacion_usuario = OncologoDAO.obtener_oncologo_por_id(db, usuario_en_token.id_usuario)
+
+    #Debemos de verificar que exista el usuario
+    if not validacion_usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+    OncologoDAO.actualizar_datos_perfil(db, usuario_en_token.id_usuario, datos_actualizados)
+
+    #Si todo esta correcto, regresamos el mensaje de exito
+    return {"msg": "Cuenta creada correctamente. Revisa tu correo para verificar la cuenta."} 

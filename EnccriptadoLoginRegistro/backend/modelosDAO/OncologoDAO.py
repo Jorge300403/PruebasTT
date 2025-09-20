@@ -61,6 +61,18 @@ def actualizar_contrasenia(db: Session, usuario_actualizar: Usuario, nueva_contr
     db.refresh(usuario_actualizar)
     return usuario_actualizar
 
+def actualizar_datos_perfil(db: Session, id_usuario: int, nuevos_datos_oncologo: schema_oncologo.OncologoUpdate):
+    oncologo = db.query(Oncologo).filter(Oncologo.id_usuario == id_usuario).first()
+    
+    oncologo.nombre = encriptar_aes.encriptar(nuevos_datos_oncologo.nombre)
+    oncologo.apellido = encriptar_aes.encriptar(nuevos_datos_oncologo.apellido)
+    oncologo.telefono = encriptar_aes.encriptar(nuevos_datos_oncologo.telefono)
+    oncologo.institucion = encriptar_aes.encriptar(nuevos_datos_oncologo.institucion)
+
+    db.commit()
+    db.refresh(oncologo)
+    return oncologo
+
 
 def verificar_correo(db: Session, usuario_actualizar: Usuario):
     usuario_actualizar.es_verificado = True 

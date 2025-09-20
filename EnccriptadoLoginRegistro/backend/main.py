@@ -15,7 +15,7 @@ Oncologo.Base.metadata.create_all(bind=engine)
 # Configuración CORS (permitir acceso desde React)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # En producción, cambia por el dominio de tu frontend
+    allow_origins=["*"],  # Cambiar por el dominio del frontend
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -24,4 +24,3 @@ app.add_middleware(
 
 # Routers
 app.include_router(router_oncologo)
-print("LLegamos al main")
