@@ -24,6 +24,7 @@
 .login-active .auth-left {
     transform: translateX(0);
 }
+
 .login-active .auth-right {
     transform: translateX(0);
 }
@@ -31,53 +32,91 @@
 .registro-active .auth-left {
     transform: translateX(-100%);
 }
+
 .registro-active .auth-right {
     transform: translateX(-100%);
 }
 
 /* Opcional: agregar sombra o fondo al formulario */
-.auth-right > div.card {
+.auth-right>div.card {
     transition: all 0.8s ease;
 }
 
 
-#header-login-registro{
+#header-login-registro {
     background-color: #005B99 !important;
-    
-  font-family: 'Iknut Antiqua', serif;
+
+    font-family: 'Iknut Antiqua', serif;
 }
 
-#contenedor-form-login{
+#contenedor-form-login {
     background-color: #F5F6F5 !important;
 }
 
-#btn-reenviar-verificacion{
+#btn-reenviar-verificacion {
     width: 50% !important;
     align-self: center !important;
 }
 
-#btn-reenviar-verificacion{    
+#btn-reenviar-verificacion {
     background-color: #005B99 !important;
 }
 
 .form-label {
-  font-family: 'Iknut Antiqua', serif;
-  font-size: 20px;
-  color: #005B99;
+    font-family: 'Iknut Antiqua', serif;
+    font-size: 20px;
+    color: #005B99;
 }
 
-#titulo-login{
-font-size: 40px;
-  font-family: 'Iknut Antiqua', serif;
-  color: #005B99;
+#titulo-login {
+    font-size: 40px;
+    font-family: 'Iknut Antiqua', serif;
+    color: #005B99;
 }
 
-button{
+button {
     font-family: 'Iknut Antiqua', serif;
     width: 150px !important;
+    height: 50px;
 }
 
-#contenedorpriebas{
-    background-color: red !important;
+#contenedorpriebas {
+    background-color: white !important;
     color: green !important;
+}
+
+
+#card-menu-datos {
+    background-color: #005B99 !important;
+}
+
+#card-form-datos-oncologo {
+    background-color: #005B99 !important;
+}
+
+#header-oncologo {
+    height: 10vh;
+    background-color: #005B99 !important;
+    font-size: xx-large;
+}
+
+.label-editar-oncologo {
+    color: white !important;
+    font-size: x-large;
+}
+
+.input-editar-oncologo{
+    height: 50px;
+    font-size: xx-large;
+}
+
+.link-card-menu {
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.link-card-menu:hover {
+  background-color: rgba(255, 255, 255, 0.15); /* más opaco */
 }

@@ -6,35 +6,40 @@ export default function LayoutOncologo() {
         <div className="d-flex flex-column" style={{ minHeight: "100vh" }}>
 
             {/* Header fijo */}
-            <header className="w-100 bg-primary text-white py-3 text-center" style={{ flex: "0 0 60px" }}>
+            <header
+                className="w-100 bg-primary text-white d-flex justify-content-center align-items-center"
+                id="header-oncologo"
+                style={{
+                    height: "10vh",
+                    position: "fixed",
+                    top: 0,
+                    left: 0,
+                    zIndex: 1000,
+                }}
+            >
                 <h1>SR-DTCM</h1>
             </header>
 
-            {/* Contenido dinámico (se ajusta para no quedar debajo del header) */}
-            <main className="flex-grow-1" style={{ backgroundColor: "red" }}>
-                <Outlet />
+            {/* Contenedor scrollable */}
+            <div style={{ marginTop: "10vh", flex: 1, overflowY: "auto", }}>
+                
+                {/* Main (80% de viewport) */}
+                <main style={{ minHeight: "90vh" }}>
+                    <Outlet />
+                </main>
+
+                {/* Footer (se ve al hacer scroll) */}
                 <footer
                     className="w-100 bg-dark text-white py-2 text-center"
-                    style={{
-                        flex: "0 0 40px",
-                        bottom: 0,
-                        left: 0,
-                        width: "100%",
-                        height: "500px",
-                    }}
+                    style={{ minHeight: "5vh" }}
                 >
                     <p>© 2025 - Tu Proyecto</p>
                     <p>© 2025 - Tu Proyecto</p>
                     <p>© 2025 - Tu Proyecto</p>
                     <p>© 2025 - Tu Proyecto</p>
                     <p>© 2025 - Tu Proyecto</p>
-                    <p>© 2025 - Tu Proyecto</p>
-                    <p>© 2025 - Tu Proyecto</p>
                 </footer>
-            </main>
-
-            {/* Footer (puedes personalizarlo más adelante) */}
-
+            </div>
         </div>
     );
 }

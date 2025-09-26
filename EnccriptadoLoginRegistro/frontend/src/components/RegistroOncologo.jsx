@@ -109,7 +109,7 @@ export default function PaginaRegistroOncologo({moverseLogin}) {
     };
 
     return (
-        <div className="container-fluid d-flex">
+        <div className="container-fluid d-flex" >
 
             {/* Contenido principal */}
             <div className="row flex-grow-1">

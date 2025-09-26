@@ -239,7 +239,9 @@ def restablecer_contrasenia(datos_usuario: schema_oncologo.OncologoUpdatePasswor
 
 
 
+# Peticion para editar los datos del perfil del oncologo
 @router.put("/editar")
+# Debe recibir los parametros que se van a editar, asi como la sesion activa
 def editar_datos_oncologo(datos_actualizados: schema_oncologo.OncologoUpdate, usuario_en_token: Usuario = Depends(obtener_usuario_actual), db: Session = Depends(get_db)):
     #Debemos de obtener los datos que se ingresan en el formulario del front
     validacion_usuario = OncologoDAO.obtener_oncologo_por_id(db, usuario_en_token.id_usuario)
@@ -251,4 +253,4 @@ def editar_datos_oncologo(datos_actualizados: schema_oncologo.OncologoUpdate, us
     OncologoDAO.actualizar_datos_perfil(db, usuario_en_token.id_usuario, datos_actualizados)
 
     #Si todo esta correcto, regresamos el mensaje de exito
-    return {"msg": "Cuenta creada correctamente. Revisa tu correo para verificar la cuenta."} 
+    return {"msg": "Información actualizada."} 
