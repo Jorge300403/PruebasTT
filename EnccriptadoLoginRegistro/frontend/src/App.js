@@ -17,6 +17,13 @@ import PaginaDatosPerfil from './paginas/DatosPerfil';
 import PaginaListaPacientes from './paginas/ListaPacientes';
 
 
+//Import para el administrador
+import LayoutAdministrador from './components/LayoutAdministrador';
+import PaginaListaOncologos from './paginas/ListaOncologos';
+import PaginaCargarDatosEntrenamiento from './paginas/CargarDatosEntrenamiento';
+
+
+
 function App() {
   return (
     //Traemos todas la rutas uqe vamos a utilizar, siendo la prinicpal la del login
@@ -36,6 +43,13 @@ function App() {
         <Route path='/oncologo' element={<PaginaRutaPrivada> <LayoutOncologo /> </PaginaRutaPrivada>}>
           <Route path='lista-pacientes' element={<PaginaListaPacientes />} />
           <Route path='datos-perfil' element={<PaginaDatosPerfil />} />
+        </Route>
+
+
+        {/*Hacemos las rutas de las paginas del administrador que llevan el mismo header y footer*/}
+        <Route path='/administrador' element={<PaginaRutaPrivada> <LayoutAdministrador /> </PaginaRutaPrivada>}>
+          <Route path='lista-oncologos' element={<PaginaListaOncologos />} />
+          <Route path='cargar-datos-entrenamiento' element={<PaginaCargarDatosEntrenamiento />} />
         </Route>
 
       </Routes>

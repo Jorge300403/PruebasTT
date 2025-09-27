@@ -13,6 +13,7 @@ from validaciones import encriptar_aes
 from correos import correo_restablecer_contrasenia
 from database import get_db
 from fastapi.responses import RedirectResponse
+from routers import router_administrador
 
 
 FRONTEND_URL = "http://localhost:3000"
@@ -95,7 +96,7 @@ def login(datos_oncologo: schema_oncologo.OncologoLogin, db: Session = Depends(g
     if not validacion_usuario:
         #Si el correo no existe entonces mostramos un mensaje 
         raise HTTPException(status_code=401, detail="El correo ingresado no está registrado")
-    
+
     if not autentificacion_password.verificar_contrasenia(datos_oncologo.contrasenia, validacion_usuario.contrasenia):
         #Verificamos la contraseña, si es incorrecta entoncces mostramos mensaje, 
         raise HTTPException(status_code=401, detail="La contraseña es incorrecta")
@@ -107,8 +108,8 @@ def login(datos_oncologo: schema_oncologo.OncologoLogin, db: Session = Depends(g
     #Si no hay errores, creamos el token de acceso donde guardamos el id del correo
     token = autentificacion_password.crear_token_acceso(str(validacion_usuario.id_usuario))
 
-    #Si todo salio bien entones regresamos el token y el tipo de token
-    return {"access_token": token, "token_type": "bearer"}
+    #Si todo salio bien entones regresamos el token y el tipo de token, y el tipo de usuario
+    return {"access_token": token, "token_type": "bearer", "tipo_usuario": validacion_usuario.tipo_usuario}
 
 
 

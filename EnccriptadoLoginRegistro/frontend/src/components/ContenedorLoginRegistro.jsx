@@ -11,7 +11,7 @@ export default function PaginaSliderLoginRegistro() {
   return (
     <div className="d-flex flex-column vh-100">
       {/* Header fijo */}
-      <header className="w-100 bg-primary text-white py-3 text-center" style={{ flex: "0 0 60px" }}>
+      <header className="w-100 bg-primary text-white py-3 text-center" id="header-oncologo" style={{ flex: "0 0 10vh" }}>
         <h1>SR-DTCM</h1>
       </header>
 

@@ -3,28 +3,11 @@ import usuarioGenericoImg from "../imagenes/usuario-generico.jpg";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
-export default function PaginaListaPacientes() {
+export default function PaginaCargarDatosEntrenamiento() {
     // Estados separados
     const [nombre, setNombre] = useState("");
     const navigate = useNavigate();
 
-
-
-
-
-    // Obtener perfil
-    useEffect(() => {
-        const token = localStorage.getItem("token");
-        api.get("/oncologo/perfil", { headers: { Authorization: `Bearer ${token}` } })
-            .then(res => {
-                setNombre(res.data.nombre);
-            })
-            .catch(() => {
-                alert("Sesion caducada");
-                localStorage.removeItem("token");
-                navigate("/")
-            });
-    }, []);
 
 
 
@@ -53,7 +36,7 @@ export default function PaginaListaPacientes() {
                     <div className="card-body d-flex flex-column justify-content-between">
                         {/* Parte superior */}
                         <div className="text-center">
-                            <h1 className="mt-4">¡Bienvenido {nombre}!</h1>
+                            <h1 className="mt-4">¡Bienvenido Administrador!</h1>
                             <img
                                 src={usuarioGenericoImg}
                                 alt="Usuario Genérico"
@@ -66,22 +49,14 @@ export default function PaginaListaPacientes() {
                         {/* Links de navegación */}
                         <div className="ms-4 mb-4">
                             <div
-                                onClick={() => navigate("/oncologo/datos-perfil")}
+                                onClick={() => navigate("/administrador/lista-oncologos")}
                                 className="link-card-menu d-flex align-items-center mb-4"
                             >
                                 <i
-                                    className="bi bi-person"
+                                    className="bi bi-list"
                                     style={{ color: "white", fontSize: "2rem", marginRight: "8px" }}
                                 ></i>
-                                <h5 className="mb-0 label-editar-oncologo">Ver perfil</h5>
-                            </div>
-
-                            <div className="link-card-menu d-flex align-items-center mb-3">
-                                <i
-                                    className="bi bi-plus-circle"
-                                    style={{ color: "white", fontSize: "2rem", marginRight: "8px" }}
-                                ></i>
-                                <h5 className="mb-0 label-editar-oncologo">Hacer análisis</h5>
+                                <h5 className="mb-0 label-editar-oncologo">Lista oncologos</h5>
                             </div>
                         </div>
 
@@ -102,7 +77,7 @@ export default function PaginaListaPacientes() {
             <div className="col-12 col-md-9 d-flex align-items-center justify-content-center p-5">
                 <div className="card text-white w-100 shadow-lg" id="card-form-datos-oncologo">
                     <div className="card-body">
-
+                        Cargar datos de entrenamiento
                     </div>
                 </div>
             </div>

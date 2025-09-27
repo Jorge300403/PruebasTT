@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import loginImage from "../imagenes/cancer-mama-login.jpg";
 
-export default function PaginaLogin({moverseRegistro} ) {
+export default function PaginaLogin({ moverseRegistro }) {
     //Definimos las variales que vamos a ocupoar en el formualrio
     const [correo_electronico, setCorreoElectronico] = useState("");
     const [contrasenia, setContrasenia] = useState("");
@@ -16,17 +16,23 @@ export default function PaginaLogin({moverseRegistro} ) {
         try {
             //Hacemos la petición al back enviando las credenciales
             const respuesta_back = await api.post("/oncologo/login", { correo_electronico, contrasenia });
-            
+
             //Obtenemos el token que regrese el back
             localStorage.setItem("token", respuesta_back.data.access_token);
 
-            //Si esta correcto entonces navegamos a la pagina principal o el board
-            navigate("/oncologo/lista-pacientes");
+            //Revisamos si es admin o oncólogo
+            if (respuesta_back.data.tipo_usuario === 1) {
+                // Es administrador
+                navigate("/administrador/lista-oncologos");
+            } else {
+                // Es oncólogo
+                navigate("/oncologo/lista-pacientes");
+            }
         } catch (error) {
             //Si no esta verificado entonces mandamos la pagina para verificar su correo
             if (error.response?.status === 403 && error.response?.data.detail === "Correo no verificado") {
                 navigate("/correo-no-verificado", { state: { correo_electronico } });
-            } else if(error.response) {
+            } else if (error.response) {
                 alert(error.response.data.detail);
             } else {
                 alert("Error de conexión con el servidor");
@@ -39,7 +45,7 @@ export default function PaginaLogin({moverseRegistro} ) {
             {/* Contenido principal */}
             <div className="row flex-grow-1">
                 {/* Izquierda: Formulario */}
-                <div className="col-md-6 d-flex justify-content-center align-items-center" style={{backgroundColor:"white"}}>
+                <div className="col-md-6 d-flex justify-content-center align-items-center" style={{ backgroundColor: "white" }}>
                     <div className="card p-5 shadow w-100" style={{ maxWidth: "400px", width: "100%" }} id="contenedor-form-login">
                         <label className="text-center mb-4" id="titulo-login">¡Bienvenido!</label>
                         <form onSubmit={handleLogin}>
@@ -67,13 +73,13 @@ export default function PaginaLogin({moverseRegistro} ) {
                         </form>
                         <p className="text-center mt-3">
                             ¿Olvidaste tu contraseña? {" "}
-                            <span className="link-primary" style={{cursor: "pointer"}} onClick={() => navigate("/olvido-contrasenia")}>
+                            <span className="link-primary" style={{ cursor: "pointer" }} onClick={() => navigate("/olvido-contrasenia")}>
                                 Restablecer
                             </span>
                         </p>
                         <p className="text-center mt-3">
                             ¿No tienes cuenta?{" "}
-                            <span className="link-primary" style={{cursor: "pointer"}} onClick={moverseRegistro}>
+                            <span className="link-primary" style={{ cursor: "pointer" }} onClick={moverseRegistro}>
                                 Regístrate
                             </span>
                         </p>
@@ -83,7 +89,7 @@ export default function PaginaLogin({moverseRegistro} ) {
                 {/* Derecha: Imagen */}
                 <div className="col-md-6 d-none d-md-flex justify-content-center align-items-center">
                     <img
-                        src={loginImage} 
+                        src={loginImage}
                         alt="Imagen login"
                         style={{ width: "100%", height: "100%", objectFit: "cover" }}
                     />

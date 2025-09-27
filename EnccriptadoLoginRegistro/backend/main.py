@@ -3,6 +3,7 @@ from modelos import Usuario
 from modelos import Oncologo
 from database import engine
 from routers.router_oncologo import router as router_oncologo
+from routers.router_administrador import router as router_administrador
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -10,6 +11,7 @@ app = FastAPI()
 # Crear tablas
 Usuario.Base.metadata.create_all(bind=engine)
 Oncologo.Base.metadata.create_all(bind=engine)
+
 
 
 # Configuración CORS (permitir acceso desde React)
@@ -24,3 +26,4 @@ app.add_middleware(
 
 # Routers
 app.include_router(router_oncologo)
+app.include_router(router_administrador)

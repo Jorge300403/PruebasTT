@@ -35,3 +35,14 @@ class OncologoResponsePerfil(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+
+class OncologoGetList(BaseModel):
+    id_usuario: int
+    correo_electronico: str
+    nombre: str
+    apellido: str
+
+    class Config:
+        from_attributes = True 
