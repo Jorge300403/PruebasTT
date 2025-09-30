@@ -1,7 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import api from "../services/api";
-import { useState } from "react";
-import revisarCorreoImg from '../imagenes/revisar-correo.jpg'
+import api from "../../services/api";
+import revisarCorreoImg from '../../imagenes/revisar-correo.jpg'
 
 export default function PaginaCorreoNoVerificado() {
   const location = useLocation();

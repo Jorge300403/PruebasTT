@@ -1,5 +1,5 @@
-import api from "../services/api";
-import usuarioGenericoImg from "../imagenes/usuario-generico.jpg";
+import api from "../../services/api";
+import usuarioGenericoImg from "../../imagenes/usuario-generico.jpg";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 

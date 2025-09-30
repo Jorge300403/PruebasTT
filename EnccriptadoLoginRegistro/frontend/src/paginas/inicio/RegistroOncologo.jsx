@@ -1,0 +1,265 @@
+import api from "../../services/api";
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import Swal from "sweetalert2";
+import registroImage from "../../imagenes/cancer-mama-login.jpg";
+
+export default function PaginaRegistroOncologo({ moverseLogin }) {
+    //Definimos todas la variables que vamos a utilizar
+    const [correo_electronico, setCorreoElectronico] = useState("");
+    const [contrasenia, setContrasenia] = useState("");
+    const [confirmarContrasenia, setConfirmarContrasenia] = useState("");
+    const [nombre, setNombre] = useState("");
+    const [apellido, setApellido] = useState("");
+    const [institucion, setInstitucion] = useState("");
+    const [telefono, setTelefono] = useState("");
+    const [errores, setErrores] = useState({});
+    const navigate = useNavigate();
+
+
+    //Definimos las expresiones regulares para la validación de los datos
+    const regex = {
+        nombre: /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{1,100}$/,
+        apellido: /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{1,100}$/,
+        correo: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+        contrasenia: /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*.\-_])[A-Za-z\d!@#$%^&*.\-_]{8,}$/,
+        institucion: /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{1,100}$/,
+        telefono: /^\d{10}$/,
+    };
+
+
+    //Definimos cada uno de los mensajes de verificación
+    const mensajesVerificacion = (name, value) => {
+        let message = "";
+        //Creamos cada uno de los casos, en caso de que no cumpla creamos el mensaje de error
+        switch (name) {
+            case "nombre":
+                if (!regex.nombre.test(value)) message = "Solo letras, máximo 100 caracteres.";
+                break;
+            case "apellido":
+                if (!regex.apellido.test(value)) message = "Solo letras, máximo 100 caracteres.";
+                break;
+            case "correo":
+                if (!regex.correo.test(value)) message = "Formato de correo inválido.";
+                break;
+            case "contrasenia":
+                if (!regex.contrasenia.test(value)) message = "Mínimo 8 caracteres, una mayúscula, un número y un símbolo.";
+                break;
+            case "confirmarContrasenia":
+                if (value !== contrasenia) message = "Las contraseñas no coinciden.";
+                break;
+            case "institucion":
+                if (!regex.institucion.test(value)) message = "Solo letras, máximo 100 caracteres.";
+                break;
+            case "telefono":
+                if (!regex.telefono.test(value)) message = "El número debe de ser de 10 dígitos.";
+                break;
+            default:
+                break;
+        }
+        //Guardamos la lista de todos los errores y los enviamos
+        setErrores((prev) => ({ ...prev, [name]: message }));
+    };
+
+
+    //Definimos función para verificar si hay algun error
+    const validarErrores = () => {
+        return (
+            nombre &&
+            apellido &&
+            correo_electronico &&
+            contrasenia &&
+            confirmarContrasenia &&
+            institucion &&
+            telefono &&
+            !Object.values(errores).some((err) => err !== "")
+        );
+    };
+
+
+    //Definimos la funcion principal para la petición con el back
+    const handleRegister = async (e) => {
+        e.preventDefault();
+
+        //Primero debemos de validar que no haya errores en el formulario, si hay mostramos el modal de error
+        if (!validarErrores()) {
+            Swal.fire({
+                title: "Error",
+                text: "Por favor corrige los errores antes de enviar.",
+                icon: "error",
+                confirmButtonColor: "#B3261E"
+            });
+            return;
+        }
+
+        //Ahora hacemos la petición para registrarlo
+        try {
+            const respuesta_back = await api.post("/oncologo/register", {
+                correo_electronico,
+                contrasenia,
+                nombre,
+                apellido,
+                institucion,
+                telefono
+            });
+
+            //Si fue exitoso, mostramos el modal de exito y redirigimos al login
+            Swal.fire({
+                title: "¡Registro exitoso!",
+                text: respuesta_back.data.msg,
+                icon: "success",
+                confirmButtonText: "Aceptar",
+                confirmButtonColor: "#4CAf50",
+            }).then(() => {
+                moverseLogin();
+            });
+
+        } catch (err) {
+            //Si existe algun error entonces mostramos el error que ocurrio
+            Swal.fire({
+                title: "Error en el registro",
+                text: err.response?.data?.detail || "Ocurrió un error inesperado",
+                icon: "error",
+                confirmButtonColor: "#B3261E"
+            });
+        }
+    };
+
+
+    return (
+        <div className="container-fluid row contenedor-prinipal">
+            {/* Izquierda: Imagen */}
+            <div className="col-md-6 d-none d-md-flex justify-content-center align-items-center contenedor-derecho-imagen-inicio">
+                <img
+                    src={registroImage}
+                    alt="Registro"
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+            </div>
+
+            {/* Derecha: Formulario */}
+            <div className="col-12 col-md-6 d-flex justify-content-center align-items-center contenedor-form-inicio">
+                <div className="card col-md-4 col-12 shadow-lg d-flex flex-column justify-content-between">
+                    <h1 className="text-center texto-azul m-5">¡Registrate!</h1>
+                    <form onSubmit={handleRegister} className="px-5">
+                        <div className="mt-4">
+                            <label className="form-label texto-negro"><h5>Correo</h5></label>
+                            <input
+                                type="email"
+                                className={`form-control ${errores.correo ? "is-invalid" : ""}`}
+                                value={correo_electronico}
+                                onChange={(e) => {
+                                    setCorreoElectronico(e.target.value);
+                                    mensajesVerificacion("correo", e.target.value);
+                                }}
+                                placeholder="Ingresa correo"
+                            />
+                            {errores.correo && <div className="invalid-feedback">{errores.correo}</div>}
+                        </div>
+
+                        <div className="mt-4">
+                            <label className="form-label texto-negro"><h5>Contraseña</h5></label>
+                            <input
+                                type="password"
+                                className={`form-control ${errores.contrasenia ? "is-invalid" : ""}`}
+                                value={contrasenia}
+                                onChange={(e) => {
+                                    setContrasenia(e.target.value);
+                                    mensajesVerificacion("contrasenia", e.target.value);
+                                }}
+                                placeholder="Ingresa contraseña"
+                            />
+                            {errores.contrasenia && <div className="invalid-feedback">{errores.contrasenia}</div>}
+                        </div>
+
+                        <div className="mt-4">
+                            <label className="form-label texto-negro"><h5>Confirmar Contraseña</h5></label>
+                            <input
+                                type="password"
+                                className={`form-control ${errores.confirmarContrasenia ? "is-invalid" : ""}`}
+                                value={confirmarContrasenia}
+                                onChange={(e) => {
+                                    setConfirmarContrasenia(e.target.value);
+                                    mensajesVerificacion("confirmarContrasenia", e.target.value);
+                                }}
+                                placeholder="Confirma tu contraseña"
+                            />
+                            {errores.confirmarContrasenia && <div className="invalid-feedback">{errores.confirmarContrasenia}</div>}
+                        </div>
+
+                        <div className="mt-4">
+                            <label className="form-label texto-negro"><h5>Nombre</h5></label>
+                            <input
+                                className={`form-control ${errores.nombre ? "is-invalid" : ""}`}
+                                value={nombre}
+                                onChange={(e) => {
+                                    setNombre(e.target.value);
+                                    mensajesVerificacion("nombre", e.target.value);
+                                }}
+                                placeholder="Ingresa tu nombre"
+                            />
+                            {errores.nombre && <div className="invalid-feedback">{errores.nombre}</div>}
+                        </div>
+
+                        <div className="mt-4">
+                            <label className="form-label texto-negro"><h5>Apellido</h5></label>
+                            <input
+                                className={`form-control ${errores.apellido ? "is-invalid" : ""}`}
+                                value={apellido}
+                                onChange={(e) => {
+                                    setApellido(e.target.value);
+                                    mensajesVerificacion("apellido", e.target.value);
+                                }}
+                                placeholder="Ingresa tus apellidos"
+                            />
+                            {errores.apellido && <div className="invalid-feedback">{errores.apellido}</div>}
+                        </div>
+
+                        <div className="mt-4">
+                            <label className="form-label texto-negro"><h5>Institución</h5></label>
+                            <input
+                                className={`form-control ${errores.institucion ? "is-invalid" : ""}`}
+                                value={institucion}
+                                onChange={(e) => {
+                                    setInstitucion(e.target.value);
+                                    mensajesVerificacion("institucion", e.target.value);
+                                }}
+                                placeholder="Ingresa institución"
+                            />
+                            {errores.institucion && <div className="invalid-feedback">{errores.institucion}</div>}
+                        </div>
+
+                        <div className="mt-4">
+                            <label className="form-label texto-negro"><h5>Teléfono</h5></label>
+                            <input
+                                className={`form-control ${errores.telefono ? "is-invalid" : ""}`}
+                                value={telefono}
+                                onChange={(e) => {
+                                    setTelefono(e.target.value);
+                                    mensajesVerificacion("telefono", e.target.value);
+                                }}
+                                placeholder="Ingresa télefono"
+                            />
+                            {errores.telefono && <div className="invalid-feedback">{errores.telefono}</div>}
+                        </div>
+
+                        <div className="text-center my-4">
+                            <button type="submit" className="btn boton-verde" disabled={!validarErrores()}>
+                                Crear cuenta
+                            </button>
+                        </div>
+                    </form>
+
+                    <div className="m-5">
+                        <p className="text-center mt-3 texto-negro">
+                            ¿Ya tienes cuenta?{" "}
+                            <span className="link-primary" style={{ cursor: "pointer" }} onClick={() => navigate("/login")}>
+                                Login
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

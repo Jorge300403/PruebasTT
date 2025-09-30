@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useLocation } from "react-router-dom";
-import correoVerificadoImg from '../imagenes/correo-verificado.jpg'
+import correoVerificadoImg from '../../imagenes/correo-verificado.jpg'
 
 export default function PaginaCorreoVerificadoExito() {
   const navigate = useNavigate();  

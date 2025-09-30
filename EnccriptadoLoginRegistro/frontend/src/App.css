@@ -32,7 +32,93 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
+}
+
+/*Hacemos todos los estilos personalizados*/
+.contenedor-pantalla {
+  min-height: 100vh;
+}
+
+header {
+  height: 10vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  background-color: #005B99 !important;
+  font-size: xx-large;
+}
+
+
+.contenedor-scrollable {
+  margin-top: 10vh;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+.contenedor-main {
+  min-height: 90vh;
+  min-width: 0;
+}
+
+.contenedor-prinipal {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important; 
+}
+
+.contenedor-form-inicio{
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important; 
+}
+
+.contenedor-derecho-imagen-inicio {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important; 
+}
+
+
+.texto-azul {
+  color: #005B99;
+  font-family: 'Iknut Antiqua', serif;
+  font-weight: bold;
+}
+
+.texto-negro {
+  color: black;
+  font-family: 'Iknut Antiqua', serif;
+  font-weight: bold;
+}
+
+.texto-blanco {
+  color: white;
+  font-family: 'Iknut Antiqua', serif;
+  font-weight: bold;
+}
+
+.boton-verde{
+  background-color: #4CAF50 !important;  
+  color: white !important;
+  font-family: 'Iknut Antiqua', serif !important;
+  font-weight: bold !important;
+}
+
+.boton-azul{
+  background-color: #005B99 !important;  
+  color: white !important;
+  font-family: 'Iknut Antiqua', serif !important;
+  font-weight: bold !important;
+}
+
+input{
+  height: 50px;
 }
