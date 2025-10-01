@@ -1,12 +1,17 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import api from "../../services/api";
+import restablecerContraseniaImg from "../../imagenes/restablecer-conrasenia.jpg"
+import revisarCorreoImg from "../../imagenes/revisar-correo.jpg"
+import Swal from "sweetalert2";
 
 export default function PaginaRestablecerContrasenia({ }) {
     const [contrasenia, setContrasenia] = useState("");
-    const [confirmarContrasenia, setConfirmarContrasenia] = useState("");    
+    const [confirmarContrasenia, setConfirmarContrasenia] = useState("");
+    const [mostrarContrasenia, setMostrarContrasenia] = useState(false);
+    const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
     const location = useLocation();
-    const token = new URLSearchParams(location.search).get("token");    
+    const token = new URLSearchParams(location.search).get("token");
     const [errores, setErrores] = useState({});
     const navigate = useNavigate();
 
@@ -40,13 +45,47 @@ export default function PaginaRestablecerContrasenia({ }) {
     const handleRestablecer = async (e) => {
         e.preventDefault();
         if (!validarErrores()) {
-            alert("Por favor corrige los errores antes de enviar.");
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+            Toast.fire({
+                icon: "error",
+                iconColor: "#FFFFFF",
+                title: "Por favor corrige los errores antes de enviar.",
+                width: "100%",
+                background: "#B3261E",
+                customClass: {
+                    popup: "toast-grid",
+                    title: "texto-blanco fs-3",
+                    timerProgressBar: "barra-progreso-blanca"
+                },
+            });
             return;
         }
         try {
             await api.post("/oncologo/restablecer-contrasenia", { token, contrasenia });
-            alert("Contraseña restablecida correctamente");
-            navigate("/");
+            Swal.fire({
+                imageUrl: revisarCorreoImg,
+                title: "!Actualizada!",
+                text: "Su contraseña ha sido cambiada exitosamente.",
+                confirmButtonText: "Aceptar",
+                customClass: {
+                    image: "imagen-swal",
+                    title: "texto-azul",
+                    timerProgressBar: "barra-progreso-azul",
+                    confirmButton: "btn-lg boton-azul"
+                }
+            }).then(() => {
+                navigate("/login")
+            });
         } catch (err) {
             console.error(err); // Para depuración
             alert(err.response?.data?.detail || "Error desconocido"); // Fallback
@@ -54,21 +93,26 @@ export default function PaginaRestablecerContrasenia({ }) {
     };
 
     return (
-        <div className="d-flex flex-column vh-100">
-            {/* Header fijo */}
-            <header className="w-100 bg-primary text-white py-3 text-center" style={{ flex: "0 0 60px" }}>
-                <h1>SR-DTCM</h1>
-            </header>
+        <div className="container-fluid row contenedor-prinipal d-flex justify-content-center align-items-center">
 
-            <div className="row flex-grow-1 justify-content-center align-items-center">
-                <div className="card p-5 shadow w-100" style={{ maxWidth: "400px", width: "100%" }} id="contenedor-form-login">
-                    <label className="text-center mb-4" id="titulo-login">Restablecer contraseña</label>
-                    <form onSubmit={handleRestablecer}>
-                        <div className="mb-3">
-                            <label className="form-label">Contraseña</label>
+            {/*Contenedor central */}
+            <div className="card col-12 col-md-3 shadow-lg d-flex flex-column justify-content-between ">
+                <div className="text-center">
+                    <img
+                        src={restablecerContraseniaImg}
+                        alt="Olvido contrasenia"
+                        className="img-fluid mt-4"
+                        style={{ maxWidth: "50%" }}
+                    />
+                    <h1 className=" texto-azul m-5">Restablecer contraseña</h1>
+                </div>
+                <form onSubmit={handleRestablecer} className="px-5">
+                    <div className="mb-3">
+                        <label className="form-label fs-5 texto-negro">Contraseña</label>
+                        <div className="input-group">
                             <input
-                                type="password"
-                                className={`form-control ${errores.contrasenia ? "is-invalid" : ""}`}
+                                type={mostrarContrasenia ? "text" : "password"}
+                                className={`form-control fs-5 texto-negro ${errores.contrasenia ? "is-invalid" : ""}`}
                                 value={contrasenia}
                                 onChange={(e) => {
                                     setContrasenia(e.target.value);
@@ -76,14 +120,23 @@ export default function PaginaRestablecerContrasenia({ }) {
                                 }}
                                 placeholder="Ingresa contraseña"
                             />
+                            <button
+                                type="button"
+                                className="btn"
+                                onClick={() => setMostrarContrasenia(!mostrarContrasenia)}
+                            >
+                                {mostrarContrasenia ? <i class="bi bi-eye-slash"></i> : <i class="bi bi-eye"></i>}
+                            </button>
                             {errores.contrasenia && <div className="invalid-feedback">{errores.contrasenia}</div>}
                         </div>
+                    </div>
 
-                        <div className="mb-3">
-                            <label className="form-label">Confirmar Contraseña</label>
+                    <div className="mb-3">
+                        <label className="form-label fs-5 texto-negro">Confirmar Contraseña</label>
+                        <div className="input-group">
                             <input
-                                type="password"
-                                className={`form-control ${errores.confirmarContrasenia ? "is-invalid" : ""}`}
+                                type={mostrarConfirmacion ? "text" : "password"}
+                                className={`form-control fs-5 texto-negro ${errores.confirmarContrasenia ? "is-invalid fs-5 texto-negro" : ""}`}
                                 value={confirmarContrasenia}
                                 onChange={(e) => {
                                     setConfirmarContrasenia(e.target.value);
@@ -91,13 +144,25 @@ export default function PaginaRestablecerContrasenia({ }) {
                                 }}
                                 placeholder="Confirma tu contraseña"
                             />
+                            <button
+                                type="button"
+                                className="btn"
+                                onClick={() => setMostrarConfirmacion(!mostrarConfirmacion)}
+                            >
+                                {mostrarConfirmacion ? <i class="bi bi-eye-slash"></i> : <i class="bi bi-eye"></i>}
+                            </button>
                             {errores.confirmarContrasenia && <div className="invalid-feedback">{errores.confirmarContrasenia}</div>}
                         </div>
-                        <button type="submit" className="btn btn-primary w-100">Restablecer</button>
-                    </form>
-                    <p className="text-center mt-3">
-                        <span className="link-primary" style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
-                            Regresar Login
+                    </div>
+                    <div className="text-center my-4">
+                        <button type="submit" className="btn boton-verde fs-5" disabled={!validarErrores()}>Actualizar contraseña</button>
+                    </div>
+                </form>
+
+                <div className="m-5">
+                    <p className="text-center fs-5">
+                        <span className="link-primary texto-azul" style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+                            Volver inicio de sesión
                         </span>
                     </p>
                 </div>

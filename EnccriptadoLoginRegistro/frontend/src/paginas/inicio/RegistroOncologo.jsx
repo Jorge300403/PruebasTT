@@ -3,8 +3,9 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import registroImage from "../../imagenes/cancer-mama-login.jpg";
+import revisarCorreoImg from "../../imagenes/revisar-correo.jpg"
 
-export default function PaginaRegistroOncologo({ moverseLogin }) {
+export default function PaginaRegistroOncologo() {
     //Definimos todas la variables que vamos a utilizar
     const [correo_electronico, setCorreoElectronico] = useState("");
     const [contrasenia, setContrasenia] = useState("");
@@ -105,13 +106,18 @@ export default function PaginaRegistroOncologo({ moverseLogin }) {
 
             //Si fue exitoso, mostramos el modal de exito y redirigimos al login
             Swal.fire({
+                imageUrl: revisarCorreoImg,
                 title: "¡Registro exitoso!",
                 text: respuesta_back.data.msg,
-                icon: "success",
                 confirmButtonText: "Aceptar",
-                confirmButtonColor: "#4CAf50",
+                customClass: {
+                    image: "imagen-swal",
+                    title: "texto-azul",
+                    text: "texto-azul",
+                    confirmButton: "btn-lg boton-azul"
+                }
             }).then(() => {
-                moverseLogin();
+                navigate("/login")
             });
 
         } catch (err) {
@@ -143,10 +149,10 @@ export default function PaginaRegistroOncologo({ moverseLogin }) {
                     <h1 className="text-center texto-azul m-5">¡Registrate!</h1>
                     <form onSubmit={handleRegister} className="px-5">
                         <div className="mt-4">
-                            <label className="form-label texto-negro"><h5>Correo</h5></label>
+                            <label className="form-label texto-negro fs-5">Correo</label>
                             <input
                                 type="email"
-                                className={`form-control ${errores.correo ? "is-invalid" : ""}`}
+                                className={`form-control texto-negro fs-5 ${errores.correo ? "is-invalid texto-negro fs-5" : ""}`}
                                 value={correo_electronico}
                                 onChange={(e) => {
                                     setCorreoElectronico(e.target.value);
@@ -158,10 +164,10 @@ export default function PaginaRegistroOncologo({ moverseLogin }) {
                         </div>
 
                         <div className="mt-4">
-                            <label className="form-label texto-negro"><h5>Contraseña</h5></label>
+                            <label className="form-label texto-negro  fs-5">Contraseña</label>
                             <input
                                 type="password"
-                                className={`form-control ${errores.contrasenia ? "is-invalid" : ""}`}
+                                className={`form-control texto-negro fs-5 ${errores.contrasenia ? "is-invalid texto-negro fs-5" : ""}`}
                                 value={contrasenia}
                                 onChange={(e) => {
                                     setContrasenia(e.target.value);
@@ -173,10 +179,10 @@ export default function PaginaRegistroOncologo({ moverseLogin }) {
                         </div>
 
                         <div className="mt-4">
-                            <label className="form-label texto-negro"><h5>Confirmar Contraseña</h5></label>
+                            <label className="form-label texto-negro fs-5">Confirmar Contraseña</label>
                             <input
                                 type="password"
-                                className={`form-control ${errores.confirmarContrasenia ? "is-invalid" : ""}`}
+                                className={`form-control texto-negro fs-5 ${errores.confirmarContrasenia ? "is-invalid texto-negro fs-5" : ""}`}
                                 value={confirmarContrasenia}
                                 onChange={(e) => {
                                     setConfirmarContrasenia(e.target.value);
@@ -188,9 +194,9 @@ export default function PaginaRegistroOncologo({ moverseLogin }) {
                         </div>
 
                         <div className="mt-4">
-                            <label className="form-label texto-negro"><h5>Nombre</h5></label>
+                            <label className="form-label texto-negro fs-5">Nombre</label>
                             <input
-                                className={`form-control ${errores.nombre ? "is-invalid" : ""}`}
+                                className={`form-control texto-negro fs-5 ${errores.nombre ? "is-invalid texto-negro fs-5" : ""}`}
                                 value={nombre}
                                 onChange={(e) => {
                                     setNombre(e.target.value);
@@ -202,9 +208,9 @@ export default function PaginaRegistroOncologo({ moverseLogin }) {
                         </div>
 
                         <div className="mt-4">
-                            <label className="form-label texto-negro"><h5>Apellido</h5></label>
+                            <label className="form-label texto-negro fs-5">Apellido</label>
                             <input
-                                className={`form-control ${errores.apellido ? "is-invalid" : ""}`}
+                                className={`form-control texto-negro fs-5 ${errores.apellido ? "is-invalid texto-negro fs-5" : ""}`}
                                 value={apellido}
                                 onChange={(e) => {
                                     setApellido(e.target.value);
@@ -216,9 +222,9 @@ export default function PaginaRegistroOncologo({ moverseLogin }) {
                         </div>
 
                         <div className="mt-4">
-                            <label className="form-label texto-negro"><h5>Institución</h5></label>
+                            <label className="form-label texto-negro fs-5">Institución</label>
                             <input
-                                className={`form-control ${errores.institucion ? "is-invalid" : ""}`}
+                                className={`form-control texto-negro fs-5 ${errores.institucion ? "is-invalid texto-negro fs-5" : ""}`}
                                 value={institucion}
                                 onChange={(e) => {
                                     setInstitucion(e.target.value);
@@ -230,9 +236,9 @@ export default function PaginaRegistroOncologo({ moverseLogin }) {
                         </div>
 
                         <div className="mt-4">
-                            <label className="form-label texto-negro"><h5>Teléfono</h5></label>
+                            <label className="form-label texto-negro fs-5">Teléfono</label>
                             <input
-                                className={`form-control ${errores.telefono ? "is-invalid" : ""}`}
+                                className={`form-control texto-negro fs-5 ${errores.telefono ? "is-invalid texto-negro fs-5" : ""}`}
                                 value={telefono}
                                 onChange={(e) => {
                                     setTelefono(e.target.value);

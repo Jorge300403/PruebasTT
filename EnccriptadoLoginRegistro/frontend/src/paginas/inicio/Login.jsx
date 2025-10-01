@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import loginImage from "../../imagenes/cancer-mama-login.jpg";
+import Swal from "sweetalert2";
 
 export default function PaginaLogin({ }) {
     //Definimos las variales que vamos a ocupoar en el formualrio
@@ -13,6 +14,32 @@ export default function PaginaLogin({ }) {
     //Definimos la funcion principal
     const handleLogin = async (e) => {
         e.preventDefault();
+        if (correo_electronico == "" || contrasenia == "") {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+            Toast.fire({
+                icon: "error",
+                iconColor: "#FFFFFF",
+                title: "Hay campos vacíos",
+                background: "#B3261E",
+                width: "100%",
+                customClass: {
+                    popup: "toast-grid",
+                    title: "texto-blanco fs-3",
+                    timerProgressBar: "barra-progreso-blanca"
+                },
+            });
+            return;
+        }
         try {
             //Hacemos la petición al back enviando las credenciales
             const respuesta_back = await api.post("/oncologo/login", { correo_electronico, contrasenia });
@@ -33,7 +60,29 @@ export default function PaginaLogin({ }) {
             if (error.response?.status === 403 && error.response?.data.detail === "Correo no verificado") {
                 navigate("/correo-no-verificado", { state: { correo_electronico } });
             } else if (error.response) {
-                alert(error.response.data.detail);
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: "top-end",
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.onmouseenter = Swal.stopTimer;
+                        toast.onmouseleave = Swal.resumeTimer;
+                    }
+                });
+                Toast.fire({
+                    icon: "error",
+                    iconColor: "#FFFFFF",
+                    title: error.response.data.detail,
+                    background: "#B3261E",
+                    width: "100%",
+                    customClass: {
+                        popup: "toast-grid",
+                        title: "texto-blanco fs-3",
+                        timerProgressBar: "barra-progreso-blanca"
+                    },
+                });
             } else {
                 alert("Error de conexión con el servidor");
             }
@@ -49,20 +98,20 @@ export default function PaginaLogin({ }) {
                     <h1 className="text-center texto-azul m-5">¡Bienvenido!</h1>
                     <form onSubmit={handleLogin} className="px-5">
                         <div className="mt-4">
-                            <label className="form-label texto-negro"><h5>Correo</h5></label>
+                            <label className="form-label texto-negro fs-5">Correo</label>
                             <input
                                 type="email"
-                                className="form-control placeholder-opacity-max"
+                                className="form-control placeholder-opacity-max fs-5 texto-negro"
                                 value={correo_electronico}
                                 onChange={(e) => setCorreoElectronico(e.target.value)}
                                 placeholder="Ingrese correo"
                             />
                         </div>
                         <div className="mt-4">
-                            <label className="form-label texto-negro"><h5>Contraseña</h5></label>
+                            <label className="form-label texto-negro fs-5">Contraseña</label>
                             <input
                                 type="password"
-                                className="form-control"
+                                className="form-control fs-5 texto-negro"
                                 value={contrasenia}
                                 onChange={(e) => setContrasenia(e.target.value)}
                                 placeholder="Ingrese contraseña"
@@ -74,13 +123,13 @@ export default function PaginaLogin({ }) {
                         </div>
                     </form>
                     <div className="m-5">
-                        <p className="text-center mt-3 texto-negro">
+                        <p className="text-center mt-3 texto-negro fs-6">
                             ¿Olvidaste tu contraseña? {" "}
                             <span className="link-primary" style={{ cursor: "pointer" }} onClick={() => navigate("/olvido-contrasenia")}>
                                 Restablecer
                             </span>
                         </p>
-                        <p className="text-center mt-3 texto-negro">
+                        <p className="text-center mt-3 texto-negro fs-6">
                             ¿No tienes cuenta?{" "}
                             <span className="link-primary" style={{ cursor: "pointer" }} onClick={() => navigate("/registro-oncologo")}>
                                 Regístrate

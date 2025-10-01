@@ -87,6 +87,15 @@ header {
 }
 
 
+.contenedor-columna{
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important; 
+}
+
+
+
 .texto-azul {
   color: #005B99;
   font-family: 'Iknut Antiqua', serif;
@@ -105,6 +114,7 @@ header {
   font-weight: bold;
 }
 
+
 .boton-verde{
   background-color: #4CAF50 !important;  
   color: white !important;
@@ -119,6 +129,72 @@ header {
   font-weight: bold !important;
 }
 
+.boton-rojo{
+  background-color: #B3261E !important;  
+  color: white !important;
+  font-family: 'Iknut Antiqua', serif !important;
+  font-weight: bold !important;
+}
+
+.boton-blanco{
+  background-color: white !important;  
+  color: #005B99 !important;
+  font-family: 'Iknut Antiqua', serif !important;
+  font-weight: bold !important;
+}
+
+.barra-progreso-azul{  
+  background-color: #005B99 !important;
+}
+
+.barra-progreso-blanca{  
+  background-color: white !important;
+}
+
+.imagen-swal{
+  max-width: 50%;
+}
+
+.toast-grid {
+  max-width: none !important; 
+  width: 100% !important;     
+}
+
+@media (min-width: 768px) {
+  .toast-grid {
+    width: 50% !important;   
+  }
+}
+
+@media (min-width: 1200px) {
+  .toast-grid {
+    width: 25% !important;   
+  }
+}
+
 input{
   height: 50px;
+}
+
+
+#card-menu{
+  background-color: #005B99 !important;
+  min-height: 90%;
+}
+
+.link-card-menu {
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.link-card-menu:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    /* más opaco */
+}
+
+
+#card-datos-perfil{  
+  background-color: white !important;
 }

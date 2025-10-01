@@ -1,16 +1,17 @@
+import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
 import api from "../../services/api";
+import timepoExpiradoImg from '../../imagenes/tiempo-expirado.jpg'
 import Swal from "sweetalert2";
-import olvidoContraseniaImg from "../../imagenes/olvido-contrasenia.jpg"
 import revisarCorreoImg from "../../imagenes/revisar-correo.jpg"
 
-export default function PaginaOlvidoContrasenia() {
-    const [correo_electronico, setCorreoElectronico] = useState("");
+export default function PaginaTokenCorreoExpirado() {
     const navigate = useNavigate();
+    const [correo_electronico, setCorreoElectronico] = useState("");
 
-    const handleRestablecer = async (e) => {
+    const handleReenviar = async (e) => {
         e.preventDefault();
+
         if (correo_electronico == "") {
             const Toast = Swal.mixin({
                 toast: true,
@@ -37,26 +38,31 @@ export default function PaginaOlvidoContrasenia() {
             });
             return;
         }
+
         try {
-            await api.post("/oncologo/olvido-contrasenia", { correo_electronico });
-            //No importa si el correo existe o no, enviamos un mensaje de que se enviara el correo
-            //Esto por seguridad de que no 
-        } catch (error) {
+            const respuesta_back = await api.post("/oncologo/reenviar-verificacion", { correo_electronico });
+            Swal.fire({
+                imageUrl: revisarCorreoImg,
+                title: "¡Enviado!",
+                text: respuesta_back.data.msg,
+                confirmButtonText: "Aceptar",
+                customClass: {
+                    image: "imagen-swal",
+                    title: "texto-azul",
+                    text: "texto-azul",
+                    confirmButton: "btn-lg boton-azul"
+                }
+            }).then(() => {
+                navigate("/login")
+            });
+        } catch (err) {
+            Swal.fire({
+                title: "Error",
+                text: err.response?.data?.detail || "Ocurrió un error inesperado",
+                icon: "error",
+                confirmButtonColor: "#B3261E"
+            });
         }
-        Swal.fire({
-            imageUrl: revisarCorreoImg,
-            title: "¡Enviado!",
-            text: "Si el correo existe, recibirás un enlace para restablecer tu contraseña.",
-            confirmButtonText: "Aceptar",
-            customClass: {
-                image: "imagen-swal",
-                title: "texto-azul",
-                timerProgressBar: "barra-progreso-azul",
-                confirmButton: "btn-lg boton-azul"
-            }
-        }).then(() => {
-            navigate("/login")
-        });
     };
 
     return (
@@ -66,15 +72,19 @@ export default function PaginaOlvidoContrasenia() {
             <div className="card col-12 col-md-3 shadow-lg d-flex flex-column justify-content-between ">
                 <div className="text-center">
                     <img
-                        src={olvidoContraseniaImg}
-                        alt="Olvido contrasenia"
+                        src={timepoExpiradoImg}
+                        alt="Imagen tiempo expirado"
                         className="img-fluid mt-4"
                         style={{ maxWidth: "50%" }}
                     />
-                    <h1 className=" texto-azul m-5">¿Tienes problemas para iniciar sesión?</h1>
-                    <p className=" texto-negro px-5 fs-4">Introduce tu correo electrónico y te enviaremos un enlace para restaurar tu contraseña.</p>
+
+                    <h1 className=" texto-azul m-5">¡Lo sentimos! <br />Este token ya no es valido.</h1>
+                    <p className=" texto-negro px-5 fs-4">Introduce tu correo electrónico y te enviaremos un enlace para  tu autentificar tu cuenta.</p>
+
                 </div>
-                <form onSubmit={handleRestablecer} className="px-5">
+
+
+                <form onSubmit={handleReenviar} className="px-5">
                     <div className="mt-5">
                         <label className="form-label texto-negro fs-5">Correo</label>
                         <input
@@ -91,13 +101,8 @@ export default function PaginaOlvidoContrasenia() {
                     </div>
                 </form>
 
-                <div className="m-5">
-                    <p className="text-center fs-5">
-                        <span className="link-primary texto-azul" style={{ cursor: "pointer" }} onClick={() => navigate("/registro-oncologo")}>
-                            Crear cuenta nueva
-                        </span>
-                    </p>
-                    <div className="d-flex align-items-center justify-content-center my-2">
+                <div className="text-center my-4">
+                    <div className="d-flex align-items-center justify-content-center my-2 mx-5">
                         <hr className="flex-grow-1" />
                         <span className="mx-2 texto-negro">o</span>
                         <hr className="flex-grow-1" />
@@ -107,9 +112,8 @@ export default function PaginaOlvidoContrasenia() {
                             Volver inicio de sesión
                         </span>
                     </p>
-                </div>
+                </div>F
             </div>
         </div>
-    )
-
+    );
 }

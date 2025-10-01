@@ -1,50 +1,70 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import revisarCorreoImg from '../../imagenes/revisar-correo.jpg'
+import Swal from "sweetalert2";
 
 export default function PaginaCorreoNoVerificado() {
   const location = useLocation();
-  const naigate = useNavigate();
+  const navigate = useNavigate();
   const correo_electronico = location.state?.correo_electronico || "";
 
   const handleReenviar = async () => {
     try {
       const respuesta_back = await api.post("/oncologo/reenviar-verificacion", { correo_electronico });
-      alert(respuesta_back.data.msg);
-      naigate("/")
+      Swal.fire({
+        title: respuesta_back.data.msg,
+        icon: "success",
+        confirmButtonText: "Aceptar",
+        customClass: {
+          title: "texto-azul",
+          confirmButton: "btn-lg boton-verde"
+        }
+      }).then(() => {
+        navigate("/login")
+      });
     } catch (err) {
-      alert(err.response?.data?.detail);
+      Swal.fire({
+        title: "Error",
+        text: err.response?.data?.detail || "Ocurrió un error inesperado",
+        icon: "error",
+        confirmButtonColor: "#B3261E"
+      });
     }
   };
 
   return (
-    <div className="d-flex flex-column vh-100">
+    <div className="container-fluid row contenedor-prinipal d-flex justify-content-center align-items-center">
 
+      {/*Contenedor central */}
+      <div className="card col-12 col-md-3 shadow-lg d-flex flex-column justify-content-between ">
 
-      {/*Header */}
-      <header className="w-100 bg-primary text-white py-3 text-center" style={{ flex: "0 0 60px" }}>
-        <h1>SR-DTCM</h1>
-      </header>
-
-
-      {/*Contenido de la pagina */}
-      <div className="row flex-grow-1 justify-content-center align-items-center">
-        <div className="card p-5 shadow w-100" style={{ maxWidth: "600px", width: "100%" }} id="contenedor-form-login">
-          <label className="text-center mb-4" id="titulo-login">¡Su correo no esta verificado!</label>
-          <img className="mb-5"
+        <div className="text-center">
+          <img
             src={revisarCorreoImg}
             alt="Imagen revisar correo"
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            className="img-fluid mt-4"
+            style={{ maxWidth: "50%" }}
           />
+          <h1 className=" texto-azul m-5">¡Su correo no esta verificado!</h1>
+          <p className=" texto-negro px-5 fs-4">Da clic en el  botón para reenviar enlace para verificar tu cuenta.</p>
+        </div>
 
-          <div className="d-flex justify-content-center align-items-center">
-            <button type="submit" id="btn-reenviar-verificacion" className="btn btn-primary w-100" onClick={handleReenviar}>Reenviar</button>
+        <div className="text-center my-4">
+          <button type="submit" className="btn boton-azul fs-5" onClick={handleReenviar}>Enviar enlace</button>
+          <div className="d-flex align-items-center justify-content-center my-2 mx-5">
+            <hr className="flex-grow-1" />
+            <span className="mx-2 texto-negro">o</span>
+            <hr className="flex-grow-1" />
           </div>
-          <p className="text-center mt-3">
-            Da clic en el  botón para reenviar correo para verificar tu cuenta. {" "}
+          <p className="text-center fs-5">
+            <span className="link-primary texto-azul" style={{ cursor: "pointer" }} onClick={() => navigate("/login")}>
+              Volver inicio de sesión
+            </span>
           </p>
         </div>
+
+
       </div>
-    </div>
+    </div >
   );
 }

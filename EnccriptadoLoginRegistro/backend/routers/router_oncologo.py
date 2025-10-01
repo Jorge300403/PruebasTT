@@ -79,7 +79,7 @@ def reenviar_verificacion_cuenta(datos_oncologo: schema_oncologo.OncologoCorreo,
             print("Error enviando email:", e)
 
         #Si todo esta correcto, regresamos el mensaje de exito
-        return {"msg": "Si el correo existe hemos enviado el enlace para verificar cuenta. Revisa tu correo para verificar la cuenta."} 
+        return {"msg": "Revisa tu correo para verificar tu cuenta, enviaremos un enlace para la verificación."} 
 
 
 
@@ -177,7 +177,7 @@ def verificar_email(token: str = Query(...), db: Session = Depends(get_db)):
         correo_electronico_decodificado = autentificacion_password.decodificar_token_verificar_correo(token)
     except JWTError:
         #Si hay un error entonces regresamos el mensaje de token invalido o expirado
-        raise HTTPException(status_code=400, detail="Token inválido o expirado")
+        return RedirectResponse(url = f"{FRONTEND_URL}/token-correo-expirado")
 
     #Obtenemos el usuario correspondiente segun el correo que esta en el token 
     usuario_en_token = OncologoDAO.obtener_usuario_por_coreo(db, correo_electronico_decodificado) 
@@ -188,31 +188,33 @@ def verificar_email(token: str = Query(...), db: Session = Depends(get_db)):
 
     if usuario_en_token.es_verificado:
         #Si el correo ya esta verificado mostramos la pantalla
-        return RedirectResponse(url = f"{FRONTEND_URL}/correo-verificado")
+        return RedirectResponse(url = f"{FRONTEND_URL}/correo-verificado-exito")
 
     #Si no estaba verificado entonces lo hacemos, y cambiaos el estadi a true y actualizamos en la bd
     OncologoDAO.verificar_correo(db, usuario_en_token)
     #Si se hizo exitosamente la verifcacion del correo, mostramos la pantalla de verificación exitosa
-    return RedirectResponse(url = f"{FRONTEND_URL}/correo-verificado")
+    return RedirectResponse(url = f"{FRONTEND_URL}/correo-verificado-exito")
 
 
 
 
 
+#Funcio por si olvido la contraseña
 @router.post("/olvido-contrasenia")
 def restablecer_contrasenia(datos_usuario: schema_oncologo.OncologoCorreo, db: Session = Depends(get_db)): #Recibimos el correo del oncologo
     validacion_usuario = OncologoDAO.obtener_usuario_por_coreo(db, datos_usuario.correo_electronico) # Obtenemos el usuario que se haya encontrado a partir de sus correo electronico
     
     #Si existen entonces debemos de mandar el correo electronico para restablecer la contraseña
     if validacion_usuario:
-        token = autentificacion_password.crear_token_restablecer_contrasenia(str(validacion_usuario.id_usuario)) #Creamos token para enviar correo y restablecer contrasenia
-        print("token generado: " + token)
+        #Creamos token para enviar correo y restablecer contrasenia
+        token = autentificacion_password.crear_token_restablecer_contrasenia(str(validacion_usuario.id_usuario)) 
         try:
-            correo_restablecer_contrasenia.enviar_correo_restablecer_contrasenia(validacion_usuario.correo_electronico, token) #Enviamos el correo, con el link del token 
+            #Enviamos el correo, con el link del token 
+            correo_restablecer_contrasenia.enviar_correo_restablecer_contrasenia(validacion_usuario.correo_electronico, token) 
         except Exception as e:
             print("Error enviando email:", e)
 
-        return {"msg": "Usuario registrado. Revisa tu correo para restablecer contraseña."} 
+        return {"msg": "Si el correo existe, recibirás un enlace para restablecer tu contraseña."} 
     else:        
         raise HTTPException(status_code=401, detail="Correo no existente")
     

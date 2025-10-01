@@ -12,6 +12,7 @@ import PaginaOlvidoContrasenia from './paginas/inicio/OlvidoContrasenia';
 import PaginaRestablecerContrasenia from './paginas/inicio/RestablecerContrasenia';
 import PaginaCorreoNoVerificado from './paginas/inicio/CorreoNoVerificado';
 import PaginaCorreoVerificadoExito from './paginas/inicio/CorreoVerificadoExito';
+import PaginaTokenCorreoExpirado from './paginas/inicio/TokenCorreoExpirado';
 
 
 //Import para el oncologo
@@ -43,6 +44,7 @@ function App() {
           <Route path='restablecer-contrasenia' element={<PaginaRestablecerContrasenia />} />
           <Route path='correo-no-verificado' element={<PaginaCorreoNoVerificado />} />
           <Route path='correo-verificado-exito' element={<PaginaCorreoVerificadoExito />} />
+          <Route path='token-correo-expirado' element={<PaginaTokenCorreoExpirado />} />
         </Route>
 
 

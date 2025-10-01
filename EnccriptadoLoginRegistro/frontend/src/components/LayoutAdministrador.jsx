@@ -3,21 +3,12 @@ import { Outlet } from "react-router-dom";
 
 export default function LayoutAdministrador() {
     return (
-        <div className="d-flex flex-column" style={{ minHeight: "100vh" }}>
+        <div className="d-flex flex-column contenedor-pantalla">
 
             {/* Header fijo */}
             <header
-                className="w-100 bg-primary text-white d-flex justify-content-center align-items-center"
-                id="header-administrador"
-                style={{
-                    height: "10vh",
-                    position: "fixed",
-                    top: 0,
-                    left: 0,
-                    zIndex: 1000,
-                }}
-            >
-                <h1>SR-DTCM</h1>
+                className="w-100 text-white d-flex justify-content-center align-items-center"  >
+                <h1 className="texto-blanco">SR-DTCM</h1>
             </header>
 
             {/* Contenedor scrollable */}
