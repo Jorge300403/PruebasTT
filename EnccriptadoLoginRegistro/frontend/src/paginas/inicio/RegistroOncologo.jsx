@@ -18,6 +18,11 @@ export default function PaginaRegistroOncologo() {
     const navigate = useNavigate();
 
 
+    //Definimos variables para mostrar o no la contrasenia
+    const [mostrarContrasenia, setMostrarContrasenia] = useState(false);
+    const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
+
+
     //Definimos las expresiones regulares para la validación de los datos
     const regex = {
         nombre: /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{1,100}$/,
@@ -165,32 +170,50 @@ export default function PaginaRegistroOncologo() {
 
                         <div className="mt-4">
                             <label className="form-label texto-negro  fs-5">Contraseña</label>
-                            <input
-                                type="password"
-                                className={`form-control texto-negro fs-5 ${errores.contrasenia ? "is-invalid texto-negro fs-5" : ""}`}
-                                value={contrasenia}
-                                onChange={(e) => {
-                                    setContrasenia(e.target.value);
-                                    mensajesVerificacion("contrasenia", e.target.value);
-                                }}
-                                placeholder="Ingresa contraseña"
-                            />
-                            {errores.contrasenia && <div className="invalid-feedback">{errores.contrasenia}</div>}
+                            <div className="input-group">
+                                <input
+                                    type={mostrarContrasenia ? "text" : "password"}
+                                    className={`form-control fs-5 texto-negro ${errores.contrasenia ? "is-invalid" : ""}`}
+                                    value={contrasenia}
+                                    onChange={(e) => {
+                                        setContrasenia(e.target.value);
+                                        mensajesVerificacion("contrasenia", e.target.value);
+                                    }}
+                                    placeholder="Ingresa contraseña"
+                                />
+                                <button
+                                    type="button"
+                                    className="btn"
+                                    onClick={() => setMostrarContrasenia(!mostrarContrasenia)}
+                                >
+                                    {mostrarContrasenia ? <i class="bi bi-eye-slash"></i> : <i class="bi bi-eye"></i>}
+                                </button>
+                                {errores.contrasenia && <div className="invalid-feedback">{errores.contrasenia}</div>}
+                            </div>
                         </div>
 
                         <div className="mt-4">
                             <label className="form-label texto-negro fs-5">Confirmar Contraseña</label>
-                            <input
-                                type="password"
-                                className={`form-control texto-negro fs-5 ${errores.confirmarContrasenia ? "is-invalid texto-negro fs-5" : ""}`}
-                                value={confirmarContrasenia}
-                                onChange={(e) => {
-                                    setConfirmarContrasenia(e.target.value);
-                                    mensajesVerificacion("confirmarContrasenia", e.target.value);
-                                }}
-                                placeholder="Confirma tu contraseña"
-                            />
-                            {errores.confirmarContrasenia && <div className="invalid-feedback">{errores.confirmarContrasenia}</div>}
+                            <div className="input-group">
+                                <input
+                                    type={mostrarConfirmacion ? "text" : "password"}
+                                    className={`form-control fs-5 texto-negro ${errores.confirmarContrasenia ? "is-invalid fs-5 texto-negro" : ""}`}
+                                    value={confirmarContrasenia}
+                                    onChange={(e) => {
+                                        setConfirmarContrasenia(e.target.value);
+                                        mensajesVerificacion("confirmarContrasenia", e.target.value);
+                                    }}
+                                    placeholder="Confirma tu contraseña"
+                                />
+                                <button
+                                    type="button"
+                                    className="btn"
+                                    onClick={() => setMostrarConfirmacion(!mostrarConfirmacion)}
+                                >
+                                    {mostrarConfirmacion ? <i class="bi bi-eye-slash"></i> : <i class="bi bi-eye"></i>}
+                                </button>
+                                {errores.confirmarContrasenia && <div className="invalid-feedback">{errores.confirmarContrasenia}</div>}
+                            </div>
                         </div>
 
                         <div className="mt-4">

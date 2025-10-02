@@ -6,15 +6,27 @@ import revisarCorreoImg from "../../imagenes/revisar-correo.jpg"
 import Swal from "sweetalert2";
 
 export default function PaginaRestablecerContrasenia({ }) {
+    //Definimos los parametros que debe de ingresar
     const [contrasenia, setContrasenia] = useState("");
     const [confirmarContrasenia, setConfirmarContrasenia] = useState("");
+
+    //Definimos variables para mostrar o no la contrasenia
     const [mostrarContrasenia, setMostrarContrasenia] = useState(false);
     const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
+
+    //Definimos el location
     const location = useLocation();
+
+    //Definimos en donde se encuentra el token
     const token = new URLSearchParams(location.search).get("token");
+    
+    //Definimeos la lista de los errores
     const [errores, setErrores] = useState({});
+
+    //Definimos el navigate par poder movernos de paginas
     const navigate = useNavigate();
 
+    //Definimos la expresion regular de la ocntraseña
     const regex = {
         contrasenia: /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*.\-_])[A-Za-z\d!@#$%^&*.\-_]{8,}$/,
     };

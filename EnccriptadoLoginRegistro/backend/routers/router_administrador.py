@@ -56,13 +56,23 @@ def register(datos_administrador: schema_administrador.AdministradorCreate, db: 
 
 #Funcion obtener lista de oncólogos con paginación
 @router.get("/lista-oncologos")
-def listar_oncologos(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+def listar_oncologos(page: int = 1, limit: int = 10, db: Session = Depends(get_db)):
+    if page < 1:
+        page = 1
+    if limit < 1:
+        limit = 10
+
+    skip = (page - 1) * limit
     oncologos = OncologoDAO.obtener_oncologos_paginados(db, skip, limit)
     total = OncologoDAO.contar_oncologos(db)
+    total_pages = (total + limit - 1) // limit
+
     return {
         "oncologos": oncologos,
-        "page": (skip // limit) + 1,
-        "total_pages": (total + limit - 1) // limit
+        "page": page,
+        "per_page": limit,
+        "total": total,
+        "total_pages": total_pages
     }
 
 

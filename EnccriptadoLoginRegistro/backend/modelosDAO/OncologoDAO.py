@@ -4,6 +4,7 @@ from modelos.Oncologo import Oncologo
 from schemas import schema_oncologo
 from validaciones import autentificacion_password
 from validaciones import encriptar_aes
+from sqlalchemy import or_
 
 
 # Creamos la funcion para obtener un usuario a partir de su correo electronico
@@ -80,41 +81,32 @@ def verificar_correo(db: Session, usuario_actualizar: Usuario):
     db.commit()
     return usuario_actualizar
 
+#Funcion para contar el numero de oncologos que estan registrados 
+def contar_oncologos(db: Session): 
+    return db.query(Oncologo).count() 
 
-
-
-# Funcion para contar el numero de oncologos que estan registrados
-def contar_oncologos(db: Session):
-    return db.query(Oncologo).count()
-
-
-
-def obtener_oncologos_paginados(db: Session, skip: int = 0, limit: int = 10):
-    # Traemos los datos crudos de la BD
-    lista_oncologos = (
-        db.query(
-            Usuario.id_usuario,
-            Usuario.correo_electronico,
-            Oncologo.nombre,
-            Oncologo.apellido
-        )
-        .join(Oncologo, Usuario.id_usuario == Oncologo.id_usuario)
-        .filter(Usuario.tipo_usuario == 0)  # Solo oncólogos
-        .offset(skip)
-        .limit(limit)
-        .all()
-    )
-
-    # Transformamos cada tupla en una instancia del esquema
-    resultado = []
-    for oncologo in lista_oncologos:
-        oncologo_schema = schema_oncologo.OncologoGetList(
-            id_usuario=oncologo.id_usuario,
-            correo_electronico=encriptar_aes.desencriptar(oncologo.correo_electronico),
-            nombre=encriptar_aes.desencriptar(oncologo.nombre),
-            apellido=encriptar_aes.desencriptar(oncologo.apellido)
-        )
-        resultado.append(oncologo_schema)
-
+def obtener_oncologos_paginados(db: Session, skip: int = 0, limit: int = 10): 
+    # Traemos los datos crudos de la BD 
+    lista_oncologos = ( 
+        db.query( 
+            Usuario.id_usuario, 
+            Usuario.correo_electronico, 
+            Oncologo.nombre, 
+            Oncologo.apellido 
+            ) .join(Oncologo, Usuario.id_usuario == Oncologo.id_usuario)
+            .filter(Usuario.tipo_usuario == 0)# Solo oncólogos 
+            .offset(skip)
+            .limit(limit)
+            .all() ) 
+    
+    # Transformamos cada tupla en una instancia del esquema 
+    resultado = [] 
+    for oncologo in lista_oncologos: 
+        oncologo_schema = schema_oncologo.OncologoGetList( 
+            id_usuario=oncologo.id_usuario, 
+            correo_electronico=encriptar_aes.desencriptar(oncologo.correo_electronico), 
+            nombre=encriptar_aes.desencriptar(oncologo.nombre), 
+            apellido=encriptar_aes.desencriptar(oncologo.apellido) ) 
+    
+        resultado.append(oncologo_schema) 
     return resultado
-

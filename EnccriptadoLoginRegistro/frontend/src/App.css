@@ -194,7 +194,20 @@ input{
     /* más opaco */
 }
 
+.link-card-menu:hover,
+.link-card-menu.activo {
+  background-color: rgba(255,255,255,0.1);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+
 
 #card-datos-perfil{  
   background-color: white !important;
+}
+
+
+.offcanvas-azul{
+  background-color: #005B99 !important;
 }
