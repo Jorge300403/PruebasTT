@@ -211,3 +211,8 @@ input{
 .offcanvas-azul{
   background-color: #005B99 !important;
 }
+
+
+.contenedor-datos-paciente-carga{
+  background-color:gray !important;
+}

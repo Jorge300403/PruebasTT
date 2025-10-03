@@ -1,0 +1,127 @@
+from sqlalchemy.orm import Session
+from modelos.Paciente import Paciente
+from validaciones import encriptar_aes, autentificacion_password
+from schemas import schema_paciente
+
+
+
+
+def crear_paciente(db: Session, datos_paciente: schema_paciente.PacienteCreate):
+    nuevo_paciente = Paciente(
+        nombre = encriptar_aes.encriptar(datos_paciente.nombre),
+        apellido = encriptar_aes.encriptar(datos_paciente.apellido),
+        correo_electronico = encriptar_aes.encriptar(datos_paciente.correo_electronico),
+        edad = encriptar_aes.encriptar(datos_paciente.edad),
+        sexo = datos_paciente.sexo,
+        estado_tumor = encriptar_aes.encriptar(datos_paciente.estado_tumor),
+        er_estado = encriptar_aes.encriptar(datos_paciente.er_estado),
+        pr_estado = encriptar_aes.encriptar(datos_paciente.pr_estado),
+        her2_estado = encriptar_aes.encriptar(datos_paciente.her2_estado),
+        supervivencia_meses = encriptar_aes.encriptar(datos_paciente.supervivencia_meses),
+        evento_recaida = encriptar_aes.encriptar(datos_paciente.evento_recaida),
+        id_usuario = datos_paciente.id_usuario,
+        estado_milestone = 0
+    )
+
+    
+    db.add(nuevo_paciente)
+    db.commit()
+    db.refresh(nuevo_paciente)
+    
+    return nuevo_paciente
+
+
+
+
+
+def actualizar_datos_perfil(db: Session, nuevos_datos_paciente: schema_paciente.PacienteUpdate):
+    paciente = db.query(Paciente).filter(Paciente.id_paciente == nuevos_datos_paciente.id_paciente).first()
+    
+    paciente.nombre = encriptar_aes.encriptar(nuevos_datos_paciente.nombre)
+    paciente.apellido = encriptar_aes.encriptar(nuevos_datos_paciente.apellido)
+    paciente.correo_electronico = encriptar_aes.encriptar(nuevos_datos_paciente.correo_electronico)
+    paciente.edad = encriptar_aes.encriptar(nuevos_datos_paciente.edad)
+    paciente.sexo = nuevos_datos_paciente.sexo
+    paciente.estado_tumor = encriptar_aes.encriptar(nuevos_datos_paciente.estado_tumor)
+    paciente.er_estado = encriptar_aes.encriptar(nuevos_datos_paciente.er_estado)
+    paciente.pr_estado = encriptar_aes.encriptar(nuevos_datos_paciente.pr_estado)
+    paciente.her2_estado = encriptar_aes.encriptar(nuevos_datos_paciente.her2_estado)
+    paciente.supervivencia_meses = encriptar_aes.encriptar(nuevos_datos_paciente.supervivencia_meses)
+    paciente.evento_recaida = encriptar_aes.encriptar(nuevos_datos_paciente.evento_recaida)
+
+    db.commit()
+    db.refresh(paciente)
+    return paciente
+
+
+
+
+
+# Funcio para obtener un paciente por correo electornico
+def obtener_paciente_por_coreo(db: Session, correo_electronico: str):
+    lista_pacientes = db.query(Paciente).all()
+    for paciente in lista_pacientes:
+        try:
+            if encriptar_aes.desencriptar(paciente.correo_electronico) == correo_electronico:
+                return paciente
+        except:
+            continue
+    return None
+
+
+
+
+#Funcion apra obtener paciente por id
+def obtener_paciente_por_id(db: Session, id_paciente: int):
+    return db.query(Paciente).filter(Paciente.id_paciente == id_paciente).first()
+
+
+
+
+
+# Funcio para obtener ver que un medico no haya registrado un paciente
+def verificar_relacion_oncologo_paciente(db: Session, correo_electronico: str, id_usuario: int):
+    lista_pacientes = db.query(Paciente).all()
+    for paciente in lista_pacientes:
+        try:
+            if encriptar_aes.desencriptar(paciente.correo_electronico) == correo_electronico and paciente.id_usuario == id_usuario:
+                return paciente
+        except:
+            continue
+    return None
+
+
+
+
+#Funcion para contar el numero de pacientes de un oncologo 
+def contar_pacientes(db: Session, id_usuario: int): 
+    numero_pacientes = db.query(Paciente).filter(Paciente.id_usuario == id_usuario).count()
+    return numero_pacientes
+
+def obtener_pacientes_paginados(db: Session, skip: int = 0, limit: int = 10, id_usuario: int = None): 
+    # Traemos los datos crudos de la BD 
+    lista_pacientes = ( 
+        db.query( 
+            Paciente.id_paciente, 
+            Paciente.correo_electronico, 
+            Paciente.nombre, 
+            Paciente.apellido,
+            Paciente.estado_milestone
+            ).filter(Paciente.id_usuario == id_usuario)
+            .offset(skip)
+            .limit(limit)
+            .all() ) 
+    
+    # Transformamos cada tupla en una instancia del esquema 
+    resultado = [] 
+    for paciente in lista_pacientes: 
+        paciente_schema = schema_paciente.PacienteGetList( 
+            id_paciente = paciente.id_paciente,
+            correo_electronico = encriptar_aes.desencriptar(paciente.correo_electronico),
+            nombre = encriptar_aes.desencriptar(paciente.nombre),
+            apellido = encriptar_aes.desencriptar(paciente.apellido),
+            estado_milestone = paciente.estado_milestone
+        )
+        resultado.append(paciente_schema) 
+    return resultado
+

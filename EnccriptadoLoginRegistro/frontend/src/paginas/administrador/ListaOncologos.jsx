@@ -25,6 +25,7 @@ export default function PaginaListaOncologos() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, itemsPerPage]);
 
+
     // funciones seguras para cambiar página
     const goToPage = (n) => {
         if (n < 1) n = 1;
@@ -66,7 +67,16 @@ export default function PaginaListaOncologos() {
                                 <td>{o.nombre} {o.apellido}</td>
                                 <td className="d-none d-sm-table-cell">{o.correo_electronico}</td>
                                 <td>
-                                    <button className="btn btn-primary btn-sm">Ver detalles</button>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
+                                            
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-lg-end">
+                                            <li><button class="dropdown-item" type="button">Action</button></li>
+                                            <li><button class="dropdown-item" type="button">Another action</button></li>
+                                            <li><button class="dropdown-item" type="button">Something else here</button></li>
+                                        </ul>
+                                    </div>
                                 </td>
                             </tr>
                         ))}

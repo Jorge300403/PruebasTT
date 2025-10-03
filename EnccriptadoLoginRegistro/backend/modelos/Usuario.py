@@ -8,7 +8,7 @@ class Usuario(Base):
 
     id_usuario = Column(Integer, primary_key=True, index=True, autoincrement=True)
     tipo_usuario = Column(TINYINT(1), nullable=False)
-    correo_electronico = Column(String(100), unique=True, nullable=False)
+    correo_electronico = Column(String(255), unique=True, nullable=False)
     contrasenia = Column(String(255), nullable=False)    
     es_verificado = Column(TINYINT(1), default=False) 
 

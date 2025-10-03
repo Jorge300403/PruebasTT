@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from modelosDAO import OncologoDAO
+from modelosDAO import OncologoDAO, PacienteDAO
 from schemas import schema_oncologo
 from modelos.Oncologo import Oncologo
 from modelos.Usuario import Usuario
@@ -257,3 +257,28 @@ def editar_datos_oncologo(datos_actualizados: schema_oncologo.OncologoUpdate, us
 
     #Si todo esta correcto, regresamos el mensaje de exito
     return {"msg": "Información actualizada."} 
+
+
+
+
+
+#Funcion obtener lista de pacientes con paginación
+@router.get("/lista-pacientes")
+def listar_pacientes(page: int = 1, limit: int = 10, db: Session = Depends(get_db), usuario_en_token: Usuario = Depends(obtener_usuario_actual)):
+    if page < 1:
+        page = 1
+    if limit < 1:
+        limit = 10
+
+    skip = (page - 1) * limit
+    pacientes = PacienteDAO.obtener_pacientes_paginados(db, skip, limit, usuario_en_token.id_usuario)
+    total = PacienteDAO.contar_pacientes(db, usuario_en_token.id_usuario)
+    total_pages = (total + limit - 1) // limit
+
+    return {
+        "pacientes": pacientes,
+        "page": page,
+        "per_page": limit,
+        "total": total,
+        "total_pages": total_pages
+    }

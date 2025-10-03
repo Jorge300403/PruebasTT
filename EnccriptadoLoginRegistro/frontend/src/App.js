@@ -28,6 +28,13 @@ import PaginaCargarDatosEntrenamiento from './paginas/administrador/CargarDatosE
 
 
 
+//Import para el paciente
+import PaginaRegistroPaciente from './paginas/paciente/RegistrarPaciente';
+import PaginaResultadosPaciente from './paginas/paciente/ResultadosPaciente';
+import PaginaCargarDatosPaciente from './paginas/paciente/CargarDatosPaciente';
+
+
+
 function App() {
   return (
     //Traemos todas la rutas uqe vamos a utilizar, siendo la prinicpal la del login
@@ -52,6 +59,9 @@ function App() {
         <Route path='/oncologo' element={<PaginaRutaPrivada> <LayoutOncologo /> </PaginaRutaPrivada>}>
           <Route path='lista-pacientes' element={<PaginaListaPacientes />} />
           <Route path='datos-perfil' element={<PaginaDatosPerfil />} />
+          <Route path='registrar-paciente' element={<PaginaRegistroPaciente/>} />
+          <Route path='resultados-paciente' element={<PaginaResultadosPaciente />} />
+          <Route path='cargar-datos-paciente' element={<PaginaCargarDatosPaciente />} />
         </Route>
 
 

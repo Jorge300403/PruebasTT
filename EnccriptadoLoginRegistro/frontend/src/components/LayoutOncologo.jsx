@@ -84,8 +84,8 @@ export default function LayoutOncologo() {
                                     </div>
 
                                     <div
-                                        onClick={() => navigate("/oncologo/hacer-analisis")}
-                                        className={`link-card-menu d-flex align-items-center mb-4 ${esActivo("/oncologo/hacer-analisis")}`}
+                                        onClick={() => navigate("/oncologo/registrar-paciente")}
+                                        className={`link-card-menu d-flex align-items-center mb-4 ${esActivo("/oncologo/registrar-paciente")}`}
                                     >
                                         <i className="bi bi-plus-circle" style={{ color: "white", fontSize: "2rem", marginRight: "8px" }}></i>
                                         <p className="mb-0 label-editar-oncologo texto-blanco fs-5">Hacer análisis</p>
@@ -148,9 +148,9 @@ export default function LayoutOncologo() {
                                         <p className="mb-0 texto-blanco fs-5">Ver pacientes</p>
                                     </div>
                                     <div
-                                        onClick={() => navigate("/oncologo/hacer-analisis")}
+                                        onClick={() => navigate("/oncologo/registrar-paciente")}
                                         data-bs-dismiss="offcanvas"
-                                        className={`link-card-menu d-flex align-items-center mb-4 ${esActivo("/oncologo/hacer-analisis")}`}
+                                        className={`link-card-menu d-flex align-items-center mb-4 ${esActivo("/oncologo/registrar-paciente")}`}
                                     >
                                         <i className="bi bi-plus-circle me-2" style={{ fontSize: "1.5rem" }}></i>
                                         <p className="mb-0 texto-blanco fs-5">Hacer análisis</p>

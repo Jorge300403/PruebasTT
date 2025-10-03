@@ -1,9 +1,9 @@
 from fastapi import FastAPI
-from modelos import Usuario
-from modelos import Oncologo
+from modelos import Usuario, Oncologo, Paciente
 from database import engine
 from routers.router_oncologo import router as router_oncologo
 from routers.router_administrador import router as router_administrador
+from routers.router_paciente import router as router_paciente
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -11,6 +11,7 @@ app = FastAPI()
 # Crear tablas
 Usuario.Base.metadata.create_all(bind=engine)
 Oncologo.Base.metadata.create_all(bind=engine)
+Paciente.Base.metadata.create_all(bind=engine)
 
 
 
@@ -27,3 +28,4 @@ app.add_middleware(
 # Routers
 app.include_router(router_oncologo)
 app.include_router(router_administrador)
+app.include_router(router_paciente)

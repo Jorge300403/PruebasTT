@@ -107,7 +107,7 @@ export default function PaginaDatosPerfil() {
     return (
         <div className="card col-12 col-md-11 shadow-lg d-flex flex-column justify-content-between" id="card-datos-perfil">
             <h1 className="text-center texto-azul m-5">{modoEdicion ? "Editar datos del perfil" : "Datos del perfil"}</h1>
-            <form className="row g-3 px-5">
+            <form className="row g-3 px-5 contenedor-columna">
                 {/* Nombre */}
                 <div className="col-12 col-md-6 px-5 py-4">
                     <label className="form-label texto-negro fs-5">Nombre</label>
