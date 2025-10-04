@@ -143,9 +143,15 @@ export default function PaginaRegistroOncologo() {
             <div className="col-md-6 d-none d-md-flex justify-content-center align-items-center contenedor-derecho-imagen-inicio">
                 <img
                     src={registroImage}
-                    alt="Registro"
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    alt="Imagen login"
+                    style={{
+                        maxWidth: "100%",
+                        maxHeight: "90vh", // la clave: límite al 90% del viewport height
+                        objectFit: "cover", // recorta proporcionalmente si sobra
+                        borderRadius: "10px" // opcional si quieres bordes suaves
+                    }}
                 />
+
             </div>
 
             {/* Derecha: Formulario */}

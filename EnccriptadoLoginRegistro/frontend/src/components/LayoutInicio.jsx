@@ -12,9 +12,8 @@ export default function LayoutInicio() {
 
             {/* Contenedor scrollable */}
             <div className="contenedor-scrollable">
-
-                {/* Main (80% de viewport) */}
                 <main className="d-flex contenedor-main">
+                
                     <Outlet />
                 </main>
 

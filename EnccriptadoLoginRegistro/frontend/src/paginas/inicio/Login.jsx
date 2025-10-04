@@ -90,7 +90,7 @@ export default function PaginaLogin({ }) {
     };
 
     return (
-        <div className="container-fluid row contenedor-prinipal">
+        <div className="container-fluid row contenedor-prinipal" >
 
             {/* Izquierda: Formulario */}
             <div className="col-12 col-md-6 contenedor-form-inicio d-flex justify-content-center align-items-center">
@@ -144,8 +144,14 @@ export default function PaginaLogin({ }) {
                 <img
                     src={loginImage}
                     alt="Imagen login"
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    style={{
+                        maxWidth: "100%",
+                        maxHeight: "90vh",
+                        objectFit: "cover",
+                        borderRadius: "10px"
+                    }}
                 />
+
             </div>
         </div >
     );

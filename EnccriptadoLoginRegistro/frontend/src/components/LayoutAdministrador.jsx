@@ -36,7 +36,7 @@ export default function LayoutAdministrador() {
                 <h1 className="texto-blanco">SR-DTCM</h1>
                 {esCelular && (
                     <button
-                        className="btn btn-light"
+                        className="btn boton-azul"
                         type="button"
                         data-bs-toggle="offcanvas"
                         data-bs-target="#menuOffcanvas"

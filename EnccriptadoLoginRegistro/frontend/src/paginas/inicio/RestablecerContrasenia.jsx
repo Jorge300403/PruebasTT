@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import api from "../../services/api";
 import restablecerContraseniaImg from "../../imagenes/restablecer-conrasenia.jpg"
 import revisarCorreoImg from "../../imagenes/revisar-correo.jpg"
+import actualizadoImg   from "../../imagenes/actualizado.jpg"
 import Swal from "sweetalert2";
 
 export default function PaginaRestablecerContrasenia({ }) {
@@ -85,7 +86,7 @@ export default function PaginaRestablecerContrasenia({ }) {
         try {
             await api.post("/oncologo/restablecer-contrasenia", { token, contrasenia });
             Swal.fire({
-                imageUrl: revisarCorreoImg,
+                imageUrl: actualizadoImg,
                 title: "!Actualizada!",
                 text: "Su contraseña ha sido cambiada exitosamente.",
                 confirmButtonText: "Aceptar",

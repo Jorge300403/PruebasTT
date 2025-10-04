@@ -108,7 +108,7 @@ export default function PaginaRegistroPaciente() {
                     text: "texto-azul",
                     confirmButton: "btn-lg boton-azul"
                 }
-            }).then(() => navigate("/oncologo/lista-pacientes"));
+            }).then(() => navigate("/oncologo/cargar-datos-paciente"));
 
         } catch (err) {
             Swal.fire({

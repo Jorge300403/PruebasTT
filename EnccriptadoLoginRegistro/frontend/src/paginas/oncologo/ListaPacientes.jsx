@@ -63,39 +63,31 @@ export default function PaginaListaPacientes() {
         <div className="card col-12 col-md-11 shadow-lg d-flex flex-column justify-content-between" id="card-datos-perfil">
             <h1 className="text-center texto-azul m-5">{"Pacientes registrados"}</h1>
 
-            {/* Selector para items por página */}
-            <div className="mb-3">
-                <label>Mostrar</label>
-                <select className="form-select w-auto d-inline-block ms-2"
-                    value={itemsPerPage}
-                    onChange={(e) => { setItemsPerPage(Number(e.target.value)); setPage(1); }}>
-                    <option value={5}>5</option>
-                    <option value={10}>10</option>
-                    <option value={20}>20</option>
-                </select>
-            </div>
 
-            <div className="table-responsive">
-                <table className="table table-striped">
+            <div className="table-responsive px-5">
+                <table className="table table-striped texto-negro " >
                     <thead>
-                        <tr>
+                        <tr className="fs-2">
                             <th>Nombre</th>
                             <th className="d-none d-sm-table-cell">Correo</th> {/* ocultar en xs */}
-                            <th>Datos</th>
+                            <th className="text-center">Detalles</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="fs-5">
                         {pacientes.map((paciente) => (
                             <tr key={paciente.id_paciente}>
                                 <td>{paciente.nombre} {paciente.apellido}</td>
                                 <td className="d-none d-sm-table-cell">{paciente.correo_electronico}</td>
-                                <td>
+                                <td className="text-center">
                                     <button type="button" class="btn boton-azul" data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="bi bi-gear"></i>
                                     </button>
-                                    <ul class="dropdown-menu">
-                                        <li className="btn boton-azul" onClick={() => handleVerPaciente(paciente)}>
+                                    <ul class="dropdown-menu" style={{border: "none"}}>
+                                        <li className="btn boton-azul my-1" style={{width: "100%", height: "100%"}} onClick={() => handleVerPaciente(paciente)}>
                                             Ver resultados
+                                        </li>
+                                        <li className="btn boton-rojo" style={{width: "100%", height: "100%"}}>
+                                            Eliminar
                                         </li>
                                     </ul>
                                 </td>
@@ -106,7 +98,7 @@ export default function PaginaListaPacientes() {
             </div>
 
             {/* Paginación */}
-            <nav>
+            <nav className="px-5">
                 <ul className="pagination">
                     <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
                         <button className="page-link" onClick={() => goToPage(page - 1)}>Previous</button>

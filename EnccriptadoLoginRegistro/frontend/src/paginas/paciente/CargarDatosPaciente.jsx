@@ -168,9 +168,10 @@ export default function PaginaCargarDatosPaciente() {
 
     return (
         <div className="card col-12 col-md-11 shadow-lg" id="card-datos-perfil">
-            <h1 className="text-center texto-azul m-5">Registrar paciente</h1>
             {modoEdicion ?
                 <form className="row g-3 pb-5 contenedor-columna">
+
+                    <h1 className="text-center texto-azul m-5">Editar datos paciente</h1>
                     {/* Nombre */}
                     <div className="col-12 col-md-6 px-5 py-1">
                         <label className="form-label texto-negro fs-5">Nombre *</label>
@@ -357,39 +358,63 @@ export default function PaginaCargarDatosPaciente() {
                     </div>
                 </form>
                 :
-                <div className="row g-3 pb-5 contenedor-datos-paciente-carga contenedor-columna">
-                    <div className="col-12 col-md-6 px-5 py-1">
-                        <label className="form-label texto-negro fs-5">Nombre: {nombre} {apellido}</label>
-                        <br />
-                        <label className="form-label texto-negro fs-5">Correo: {correo_electronico}</label>
-                        <br />
-                        <label className="form-label texto-negro fs-5">Edad: {edad}</label>
-                        <br />
-                        <label className="form-label texto-negro fs-5">Sexo: {sexo === 0 ? "Mujer":"Hombre"}</label>
-                        <br />
-                        <label className="form-label texto-negro fs-5">Estado tumor: {estado_tumor}</label>
-                    </div>
+                <div>
+                    <div className="row g-3 pb-5 contenedor-datos-paciente-carga contenedor-columna">
+                        <h1 className="text-center texto-azul p-5">Datos del paciente</h1>
+                        <div className="col-12 col-md-6 px-5 py-1">
+                            <label className="form-label texto-negro fs-4">Nombre: {nombre} {apellido}</label>
+                            <br />
+                            <label className="form-label texto-negro fs-4">Correo: {correo_electronico}</label>
+                            <br />
+                            <label className="form-label texto-negro fs-4">Edad: {edad}</label>
+                            <br />
+                            <label className="form-label texto-negro fs-4">Sexo: {sexo === 0 ? "Mujer" : "Hombre"}</label>
+                            <br />
+                            <label className="form-label texto-negro fs-4">Estado tumor: {estado_tumor}</label>
+                        </div>
 
-                    <div className="col-12 col-md-6 px-5 py-1">
-                        <label className="form-label texto-negro fs-5">Estado ER: {er_estado}</label>
-                        <br />
-                        <label className="form-label texto-negro fs-5">Estado PR: {pr_estado}</label>
-                        <br />
-                        <label className="form-label texto-negro fs-5">Estado HER2: {her2_estado}</label>
-                        <br />
-                        <label className="form-label texto-negro fs-5">Supervivencia: {supervivencia_meses}</label>
-                        <br />
-                        <label className="form-label texto-negro fs-5">Evento recaida: {evento_recaida}</label>
-                    </div>
+                        <div className="col-12 col-md-6 px-5 py-1">
+                            <label className="form-label texto-negro fs-4">Estado ER: {er_estado}</label>
+                            <br />
+                            <label className="form-label texto-negro fs-4">Estado PR: {pr_estado}</label>
+                            <br />
+                            <label className="form-label texto-negro fs-4">Estado HER2: {her2_estado}</label>
+                            <br />
+                            <label className="form-label texto-negro fs-4">Supervivencia: {supervivencia_meses}</label>
+                            <br />
+                            <label className="form-label texto-negro fs-4">Evento recaida: {evento_recaida}</label>
+                        </div>
 
-                    <div className="text-center mt-4">
-                        <button
-                            type="button"
-                            className="btn btn-lg boton-verde ms-auto"
-                            onClick={() => { setModoEdicion(true); }}
-                        >
-                            {modoEdicion ? "Guardar datos" : "Editar datos"}
-                        </button>
+                        <div className="text-center mt-4">
+                            <button
+                                type="button"
+                                className="btn btn-lg boton-verde ms-auto"
+                                onClick={() => { setModoEdicion(true); }}
+                            >
+                                {modoEdicion ? "Guardar datos" : "Editar datos"}
+                            </button>
+                        </div>
+                    </div>
+                    <hr />
+                    <div>
+                        <h1 className="text-center texto-azul m-5">Cargar muestra de datos trasncriptómicos</h1>
+                        <div className=" row g-3 contenedor-columna px-5">
+                            <div className="mb-3">
+                                <input
+                                    type="file"
+                                    className="form-control form-control-lg border border-2 rounded-3 shadow-sm"
+                                    id="archivo"
+                                />
+                            </div>
+                            <div className="text-center my-4">
+                                <button
+                                    type="button"
+                                    className="btn btn-lg boton-verde ms-auto"
+                                >
+                                    Empezar análisis
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             }
