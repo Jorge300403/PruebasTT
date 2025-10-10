@@ -87,7 +87,7 @@ export default function PaginaCargarDatosPaciente() {
                 setRecaida(res.data.evento_recaida);
             })
             .catch(() => {
-                alert("Sesion caducada");
+                alert("Error al cargar los datos");
             });
     }, []);
 
@@ -164,6 +164,69 @@ export default function PaginaCargarDatosPaciente() {
             });
         }
     };
+
+
+    //Constante del archivo
+    const [archivo, setArchivo] = useState(null);
+
+    const handleFileChange = (e) => {
+        setArchivo(e.target.files[0]);
+    };
+
+    const handleSubirArchivo = async () => {
+        if (!archivo) {
+            Swal.fire("Error", "Por favor selecciona un archivo", "error");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("archivo_subido", archivo);
+
+        try {
+            const res = await api.post(`/paciente/cargar-archivo-clinico/${id_paciente_seleccionado}`, formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+
+            Swal.fire({
+                imageUrl: actualizadoImg,
+                title: "¡Éxito!",
+                text: res.data.msg,
+                confirmButtonText: "Aceptar",
+                customClass: {
+                    title: "texto-azul",
+                    text: "texto-azul",
+                    confirmButton: "btn-lg boton-azul",
+                },
+            }).then(() => {
+                //Restauramos los valores de los input
+                api.get(`/paciente/perfil/${id_paciente_seleccionado}`)
+                    .then(res => {
+                        setNombre(res.data.nombre);
+                        setApellido(res.data.apellido);
+                        setCorreoElectronico(res.data.correo_electronico);
+                        setEdad(res.data.edad);
+                        setSexo(res.data.sexo);
+                        setEstadoTumor(res.data.estado_tumor);
+                        setErEstado(res.data.er_estado);
+                        setPrEstado(res.data.pr_estado);
+                        setHer2Estado(res.data.her2_estado);
+                        setSupervivenciaMeses(res.data.supervivencia_meses);
+                        setRecaida(res.data.evento_recaida);
+                    })
+                    .catch(() => {
+                        alert("Error al cargar los datos");
+                    });
+            })
+        } catch (err) {
+            Swal.fire({
+                title: "Error",
+                text: err.response?.data?.detail || "Error al subir el archivo",
+                icon: "error",
+                confirmButtonColor: "#B3261E",
+            });
+        }
+    };
+
 
 
     return (
@@ -255,87 +318,6 @@ export default function PaginaCargarDatosPaciente() {
                         </select>
                     </div>
 
-                    {/* Estado Tumor (opcional) */}
-                    <div className="col-12 col-md-6 px-5 py-1">
-                        <label className="form-label texto-negro fs-5">Estado del tumor</label>
-                        <input
-                            type="text"
-                            className="form-control fs-5 texto-negro"
-                            value={estado_tumor}
-                            disabled={!modoEdicion}
-                            onChange={(e) => setEstadoTumor(e.target.value)}
-                            placeholder="Ingresa estado del tumor"
-                        />
-                    </div>
-
-                    {/* ER Estado */}
-                    <div className="col-12 col-md-6 px-5 py-1">
-                        <label className="form-label texto-negro fs-5">ER Estado</label>
-                        <input
-                            type="text"
-                            className="form-control fs-5 texto-negro"
-                            value={er_estado}
-                            disabled={!modoEdicion}
-                            onChange={(e) => setErEstado(e.target.value)}
-                            placeholder="Ingresa ER estado"
-                        />
-                    </div>
-
-                    {/* PR Estado */}
-                    <div className="col-12 col-md-6 px-5 py-1">
-                        <label className="form-label texto-negro fs-5">PR Estado</label>
-                        <input
-                            type="text"
-                            className="form-control fs-5 texto-negro"
-                            value={pr_estado}
-                            disabled={!modoEdicion}
-                            onChange={(e) => setPrEstado(e.target.value)}
-                            placeholder="Ingresa PR estado"
-                        />
-                    </div>
-
-                    {/* HER2 Estado */}
-                    <div className="col-12 col-md-6 px-5 py-1">
-                        <label className="form-label texto-negro fs-5">HER2 Estado</label>
-                        <input
-                            type="text"
-                            className="form-control fs-5 texto-negro"
-                            value={her2_estado}
-                            disabled={!modoEdicion}
-                            onChange={(e) => setHer2Estado(e.target.value)}
-                            placeholder="Ingresa HER2 estado"
-                        />
-                    </div>
-
-                    {/* Supervivencia en meses */}
-                    <div className="col-12 col-md-6 px-5 py-1">
-                        <label className="form-label texto-negro fs-5">Supervivencia (meses)</label>
-                        <select
-                            className="form-control fs-5 texto-negro"
-                            value={supervivencia_meses}
-                            disabled={!modoEdicion}
-                            onChange={(e) => setSupervivenciaMeses(e.target.value)}
-                        >
-                            <option value="">Seleccione meses</option>
-                            {Array.from({ length: 121 }, (_, i) => (
-                                <option key={i} value={i}>{i}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Evento recaída */}
-                    <div className="col-12 col-md-6 px-5 py-1">
-                        <label className="form-label texto-negro fs-5">Evento de recaída</label>
-                        <input
-                            type="text"
-                            className="form-control fs-5 texto-negro"
-                            value={evento_recaida}
-                            disabled={!modoEdicion}
-                            onChange={(e) => setRecaida(e.target.value)}
-                            placeholder="Ingresa evento de recaída"
-                        />
-                    </div>
-
                     {/* Botón */}
                     <div className="col-12 d-flex justify-content-between my-4 px-5">
                         {modoEdicion && (
@@ -397,21 +379,23 @@ export default function PaginaCargarDatosPaciente() {
                     </div>
                     <hr />
                     <div>
-                        <h1 className="text-center texto-azul m-5">Cargar muestra de datos trasncriptómicos</h1>
+                        <h1 className="text-center texto-azul m-5">Cargar datos clínicos paciente</h1>
                         <div className=" row g-3 contenedor-columna px-5">
                             <div className="mb-3">
                                 <input
                                     type="file"
                                     className="form-control form-control-lg border border-2 rounded-3 shadow-sm"
                                     id="archivo"
+                                    onChange={handleFileChange}
                                 />
                             </div>
                             <div className="text-center my-4">
                                 <button
                                     type="button"
                                     className="btn btn-lg boton-verde ms-auto"
+                                    onClick={handleSubirArchivo}
                                 >
-                                    Empezar análisis
+                                    Cargar archivo
                                 </button>
                             </div>
                         </div>

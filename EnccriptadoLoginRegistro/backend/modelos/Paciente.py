@@ -22,7 +22,7 @@ class Paciente(Base):
     # Relación con Oncólogo
     id_usuario = Column(Integer, ForeignKey("oncologo.id_usuario"), nullable=False)
 
-    # 0 cuando ha cargado solo losd atos personales, 1 cuando ya cargo el archivo del paciente, 2 cuando ya se ha hecho algun análisis
+    # 0 cuando ha cargado solo los datos personales, 1 cuando ya cargo el archivo del paciente, 2 cuando ya se ha hecho algun análisis
     estado_milestone = Column(TINYINT(1), default=0, nullable=False)
 
     # Relación con la tabla de oncologo

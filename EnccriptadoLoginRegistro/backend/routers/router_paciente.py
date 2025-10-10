@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, APIRouter, Query
+from fastapi import Depends, HTTPException, APIRouter, Query, File, UploadFile
 from sqlalchemy.orm import Session
 from database import get_db
 from modelosDAO import PacienteDAO
@@ -10,6 +10,9 @@ from fastapi.security import OAuth2PasswordBearer
 from modelosDAO import OncologoDAO
 from modelos.Usuario import Usuario
 from modelos.Paciente import Paciente
+from validaciones import validar_archivos
+import os
+import pandas as pd
 
 FRONTEND_URL = "http://localhost:3000"
 
@@ -67,10 +70,10 @@ def registrar(datos_paciente: schema_paciente.PacienteCreate, db: Session = Depe
     
     #Si no esta registrado, entonces creamos el nuevo paciente, mandamos la db y los datos del formulario
     datos_paciente.id_usuario = usuario_en_token.id_usuario
-    PacienteDAO.crear_paciente(db, datos_paciente) 
+    paciente_creado = PacienteDAO.crear_paciente(db, datos_paciente) 
 
     #Si todo esta correcto, regresamos el mensaje de exito
-    return {"msg": "Paciente registrado correctamente, ahora te rediregiremos para cargues su datos transcriptomicos"} 
+    return {"msg": "Paciente registrado correctamente, ahora te rediregiremos para cargues su datos transcriptomicos", "id_paciente": paciente_creado.id_paciente} 
 
 
 
@@ -132,3 +135,92 @@ def editar_datos_oncologo(datos_actualizados: schema_paciente.PacienteUpdate, db
 
     #Si todo esta correcto, regresamos el mensaje de exito
     return {"msg": "Información actualizada."} 
+
+
+
+
+
+# Peticion para eliminar un pacieente
+@router.delete("/eliminar/{id_paciente}")
+#Recibimos el id del paciente que deseamos eliminar 
+def eliminar_paciente(id_paciente: int, db: Session = Depends(get_db)):
+
+    #Hacamos la peticion de DAO para poder eliminarlo
+    validacion_eliminacion = PacienteDAO.eliminar_paciente(db, id_paciente)
+    if not validacion_eliminacion:
+        # No existe el paciente
+        raise HTTPException(status_code=404, detail="Paciente no encontrado")
+
+    return {"msg": "Paciente eliminado correctamente"}
+
+
+
+
+
+# Funcion para cargar archivo datos clinicos
+@router.post("/cargar-archivo-clinico/{id_paciente}")
+def cargar_archivo_paciente(id_paciente: int, archivo_subido: UploadFile = File(...), db: Session = Depends(get_db)):
+    #Primero debemos de verificar que se un archivo con extension valida
+    extension = archivo_subido.filename.split(".")[-1].lower()
+    if not validar_archivos.validar_tipo_archivo(archivo_subido):
+        raise HTTPException(status_code=400, detail="El archivo debe ser Excel o CSV.")
+    
+    #Ahora debemos de validar el formato del archivo
+    validacion_formato = validar_archivos.validar_archivo_clinico(archivo_subido)
+    if isinstance(validacion_formato, dict) and validacion_formato.get("msg"):
+        #Si contiene algun error,. entonces mandamos el mensaje
+        raise HTTPException(status_code=400, detail=validacion_formato["msg"])
+
+    #En dado de que no, debemos de obtnemos el contendido del archivo
+    df = validacion_formato
+
+    #Ahora debemos de sacar los valores de ese archivo
+    try:
+        #Definimos los titulos que debe de tener este archivo
+        valores = {row["dato"].lower(): row["valor"] for _, row in df.iterrows()}
+
+        #Los valore vacios los declaramos
+        for k, v in valores.items():
+            if pd.isna(v):
+                valores[k] = None
+            else:
+                valores[k] = str(v)
+
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Formato inesperado en dataframe: {str(e)}")
+
+    paciente = PacienteDAO.obtener_paciente_por_id(db, id_paciente)
+    if not paciente:
+        raise HTTPException(status_code=404, detail="Paciente no encontrado")
+
+    # preparar schema/objeto con los datos
+    datos_en_archivo = schema_paciente.PacienteArchivoClinico(
+        estado_tumor = valores.get("estado_tumor"),
+        er_estado = valores.get("er_estado"),
+        pr_estado = valores.get("pr_estado"),
+        her2_estado = valores.get("her2_estado"),
+        supervivencia_meses = valores.get("supervivencia_meses"),
+        evento_recaida = valores.get("evento_recaida")
+    )
+
+    # 4) actualizar paciente en BD
+    try:
+        PacienteDAO.cargar_datos_clinicos(db, datos_en_archivo, id_paciente)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error al actualizar datos del paciente: {str(e)}")
+
+    # 5) guardar archivo en disco (reposicionar puntero porque la validación lo consumió)
+    carpeta_destino = "archivosClinicos"
+    os.makedirs(carpeta_destino, exist_ok=True)
+    nombre_guardado = f"paciente_{id_paciente}.{extension}"
+    ruta_archivo = os.path.join(carpeta_destino, nombre_guardado)
+
+    archivo_subido.file.seek(0)
+    with open(ruta_archivo, "wb") as f:
+        f.write(archivo_subido.file.read())
+
+    return {
+        "msg": "Archivo validado y datos del paciente actualizados correctamente.",
+        "archivo_guardado": nombre_guardado
+    }

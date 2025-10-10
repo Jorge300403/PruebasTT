@@ -94,8 +94,8 @@ export default function PaginaRegistroPaciente() {
                 evento_recaida: evento_recaida || null,
                 id_usuario: "0"
             },
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
 
             Swal.fire({
                 imageUrl: revisarCorreoImg,
@@ -108,7 +108,11 @@ export default function PaginaRegistroPaciente() {
                     text: "texto-azul",
                     confirmButton: "btn-lg boton-azul"
                 }
-            }).then(() => navigate("/oncologo/cargar-datos-paciente"));
+            }).then(() => {
+                sessionStorage.setItem("pacienteSeleccionado", respuesta_back.data.id_paciente);
+
+                navigate("/oncologo/cargar-datos-paciente")
+            });
 
         } catch (err) {
             Swal.fire({
@@ -201,81 +205,6 @@ export default function PaginaRegistroPaciente() {
                         <option value="0">Mujer</option>
                         <option value="1">Hombre</option>
                     </select>
-                </div>
-
-                {/* Estado Tumor (opcional) */}
-                <div className="col-12 col-md-6 px-5 py-4">
-                    <label className="form-label texto-negro fs-5">Estado del tumor</label>
-                    <input
-                        type="text"
-                        className="form-control fs-5 texto-negro"
-                        value={estado_tumor}
-                        onChange={(e) => setEstadoTumor(e.target.value)}
-                        placeholder="Ingresa estado del tumor"
-                    />
-                </div>
-
-                {/* ER Estado */}
-                <div className="col-12 col-md-6 px-5 py-4">
-                    <label className="form-label texto-negro fs-5">ER Estado</label>
-                    <input
-                        type="text"
-                        className="form-control fs-5 texto-negro"
-                        value={er_estado}
-                        onChange={(e) => setErEstado(e.target.value)}
-                        placeholder="Ingresa ER estado"
-                    />
-                </div>
-
-                {/* PR Estado */}
-                <div className="col-12 col-md-6 px-5 py-4">
-                    <label className="form-label texto-negro fs-5">PR Estado</label>
-                    <input
-                        type="text"
-                        className="form-control fs-5 texto-negro"
-                        value={pr_estado}
-                        onChange={(e) => setPrEstado(e.target.value)}
-                        placeholder="Ingresa PR estado"
-                    />
-                </div>
-
-                {/* HER2 Estado */}
-                <div className="col-12 col-md-6 px-5 py-4">
-                    <label className="form-label texto-negro fs-5">HER2 Estado</label>
-                    <input
-                        type="text"
-                        className="form-control fs-5 texto-negro"
-                        value={her2_estado}
-                        onChange={(e) => setHer2Estado(e.target.value)}
-                        placeholder="Ingresa HER2 estado"
-                    />
-                </div>
-
-                {/* Supervivencia en meses */}
-                <div className="col-12 col-md-6 px-5 py-4">
-                    <label className="form-label texto-negro fs-5">Supervivencia (meses)</label>
-                    <select
-                        className="form-control fs-5 texto-negro"
-                        value={supervivencia_meses}
-                        onChange={(e) => setSupervivenciaMeses(e.target.value)}
-                    >
-                        <option value="">Seleccione meses</option>
-                        {Array.from({ length: 121 }, (_, i) => (
-                            <option key={i} value={i}>{i}</option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* Evento recaída */}
-                <div className="col-12 col-md-6 px-5 py-4">
-                    <label className="form-label texto-negro fs-5">Evento de recaída</label>
-                    <input
-                        type="text"
-                        className="form-control fs-5 texto-negro"
-                        value={evento_recaida}
-                        onChange={(e) => setRecaida(e.target.value)}
-                        placeholder="Ingresa evento de recaída"
-                    />
                 </div>
 
                 {/* Botón */}

@@ -57,6 +57,28 @@ def actualizar_datos_perfil(db: Session, nuevos_datos_paciente: schema_paciente.
 
 
 
+def cargar_datos_clinicos(db: Session, datos_clinicos: schema_paciente.PacienteArchivoClinico, id_paciente: int):
+    paciente = db.query(Paciente).filter(Paciente.id_paciente == id_paciente).first()
+    if not paciente:
+        return None
+
+
+    paciente.estado_tumor = encriptar_aes.encriptar(datos_clinicos.estado_tumor) if datos_clinicos.estado_tumor is not None else paciente.estado_tumor
+    paciente.er_estado = encriptar_aes.encriptar(datos_clinicos.er_estado) if datos_clinicos.er_estado is not None else paciente.er_estado
+    paciente.pr_estado = encriptar_aes.encriptar(datos_clinicos.pr_estado) if datos_clinicos.pr_estado is not None else paciente.pr_estado
+    paciente.her2_estado = encriptar_aes.encriptar(datos_clinicos.her2_estado) if datos_clinicos.her2_estado is not None else paciente.her2_estado
+    paciente.supervivencia_meses = encriptar_aes.encriptar(datos_clinicos.supervivencia_meses) if datos_clinicos.supervivencia_meses is not None else paciente.supervivencia_meses
+    paciente.evento_recaida = encriptar_aes.encriptar(datos_clinicos.evento_recaida) if datos_clinicos.evento_recaida is not None else paciente.evento_recaida
+
+    db.commit()
+    db.refresh(paciente)
+    return paciente
+
+
+
+
+
+
 # Funcio para obtener un paciente por correo electornico
 def obtener_paciente_por_coreo(db: Session, correo_electronico: str):
     lista_pacientes = db.query(Paciente).all()
@@ -125,3 +147,16 @@ def obtener_pacientes_paginados(db: Session, skip: int = 0, limit: int = 10, id_
         resultado.append(paciente_schema) 
     return resultado
 
+
+
+
+
+#Funcion para eliminar un paciente por su ID
+def eliminar_paciente(db: Session, id_paciente: int):
+    paciente = db.query(Paciente).filter(Paciente.id_paciente == id_paciente).first()
+    if not paciente:
+        return False
+
+    db.delete(paciente)
+    db.commit()
+    return True

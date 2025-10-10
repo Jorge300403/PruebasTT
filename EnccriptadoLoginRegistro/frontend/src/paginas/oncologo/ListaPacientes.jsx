@@ -1,7 +1,8 @@
 import api from "../../services/api";
-import usuarioGenericoImg from "../../imagenes/usuario-generico.jpg";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import Swal from "sweetalert2";
+import revisarCorreoImg from "../../imagenes/revisar-correo.jpg"
 
 export default function PaginaListaPacientes() {
     // Estados separados    
@@ -58,6 +59,39 @@ export default function PaginaListaPacientes() {
         }
     };
 
+
+    const handleEliminarPaciente = async (id_paciente_eliminar) => {
+        try {
+            const respuesta_back = await api.delete(`/paciente/eliminar/${id_paciente_eliminar}`)
+
+
+            Swal.fire({
+                imageUrl: revisarCorreoImg,
+                title: "¡Exitoso!",
+                text: respuesta_back.data.msg,
+                confirmButtonText: "Aceptar",
+                customClass: {
+                    image: "imagen-swal",
+                    title: "texto-azul",
+                    text: "texto-azul",
+                    confirmButton: "btn-lg boton-azul"
+                }
+            }).then(() => {
+                obtenerPacientes();
+            })
+
+        } catch (err) {
+            Swal.fire({
+                title: "Error",
+                text: err.response?.data?.detail || "Ocurrió un error inesperado",
+                icon: "error",
+                confirmButtonColor: "#B3261E"
+            });
+
+        }
+
+    }
+
     return (
 
         <div className="card col-12 col-md-11 shadow-lg d-flex flex-column justify-content-between" id="card-datos-perfil">
@@ -82,11 +116,11 @@ export default function PaginaListaPacientes() {
                                     <button type="button" class="btn boton-azul" data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="bi bi-gear"></i>
                                     </button>
-                                    <ul class="dropdown-menu" style={{border: "none"}}>
-                                        <li className="btn boton-azul my-1" style={{width: "100%", height: "100%"}} onClick={() => handleVerPaciente(paciente)}>
+                                    <ul class="dropdown-menu" style={{ border: "none" }}>
+                                        <li className="btn boton-azul my-1" style={{ width: "100%", height: "100%" }} onClick={() => handleVerPaciente(paciente)}>
                                             Ver resultados
                                         </li>
-                                        <li className="btn boton-rojo" style={{width: "100%", height: "100%"}}>
+                                        <li className="btn boton-rojo" style={{ width: "100%", height: "100%" }} onClick={() => handleEliminarPaciente(paciente.id_paciente)}>
                                             Eliminar
                                         </li>
                                     </ul>

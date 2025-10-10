@@ -55,3 +55,14 @@ class PacienteGetPerfil(BaseModel):
     her2_estado: Optional[str] = None
     supervivencia_meses: Optional[str] = None
     evento_recaida: Optional[str] = None
+
+
+
+
+class PacienteArchivoClinico(BaseModel):    
+    estado_tumor: Optional[str] = None
+    er_estado: Optional[str] = None
+    pr_estado: Optional[str] = None
+    her2_estado: Optional[str] = None
+    supervivencia_meses: Optional[str] = None
+    evento_recaida: Optional[str] = None
