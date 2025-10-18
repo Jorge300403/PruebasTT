@@ -166,21 +166,26 @@ export default function PaginaCargarDatosPaciente() {
     };
 
 
-    //Constante del archivo
-    const [archivo, setArchivo] = useState(null);
+    //Constante de los archivos
+    const [archivoClinico, setArchivoClinico] = useState(null);    
+    const [archivoTranscriptomico, setArchivoTranscriptomico] = useState(null);
 
-    const handleFileChange = (e) => {
-        setArchivo(e.target.files[0]);
+    const handleCambiarArchicoClinico = (e) => {
+        setArchivoClinico(e.target.files[0]);
     };
 
-    const handleSubirArchivo = async () => {
-        if (!archivo) {
+    const handleCambiarArchicoTranscriptomico = (e) => {
+        setArchivoTranscriptomico(e.target.files[0]);
+    };
+
+    const handleSubirArchivoClinicio = async () => {
+        if (!archivoClinico) {
             Swal.fire("Error", "Por favor selecciona un archivo", "error");
             return;
         }
 
         const formData = new FormData();
-        formData.append("archivo_subido", archivo);
+        formData.append("archivo_subido", archivoClinico);
 
         try {
             const res = await api.post(`/paciente/cargar-archivo-clinico/${id_paciente_seleccionado}`, formData, {
@@ -216,6 +221,42 @@ export default function PaginaCargarDatosPaciente() {
                     .catch(() => {
                         alert("Error al cargar los datos");
                     });
+            })
+        } catch (err) {
+            Swal.fire({
+                title: "Error",
+                text: err.response?.data?.detail || "Error al subir el archivo",
+                icon: "error",
+                confirmButtonColor: "#B3261E",
+            });
+        }
+    };
+
+
+     const handleSubirArchivoTranscriptomico = async () => {
+        if (!archivoTranscriptomico) {
+            Swal.fire("Error", "Por favor selecciona un archivo", "error");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("archivo_subido", archivoTranscriptomico);
+
+        try {
+            const res = await api.post(`/paciente/cargar-archivo-transcriptomico/${id_paciente_seleccionado}`, formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+
+            Swal.fire({
+                imageUrl: actualizadoImg,
+                title: "¡Éxito!",
+                text: res.data.msg,
+                confirmButtonText: "Aceptar",
+                customClass: {
+                    title: "texto-azul",
+                    text: "texto-azul",
+                    confirmButton: "btn-lg boton-azul",
+                },
             })
         } catch (err) {
             Swal.fire({
@@ -386,14 +427,36 @@ export default function PaginaCargarDatosPaciente() {
                                     type="file"
                                     className="form-control form-control-lg border border-2 rounded-3 shadow-sm"
                                     id="archivo"
-                                    onChange={handleFileChange}
+                                    onChange={handleCambiarArchicoClinico}
                                 />
                             </div>
                             <div className="text-center my-4">
                                 <button
                                     type="button"
                                     className="btn btn-lg boton-verde ms-auto"
-                                    onClick={handleSubirArchivo}
+                                    onClick={handleSubirArchivoClinicio}
+                                >
+                                    Cargar archivo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h1 className="text-center texto-azul m-5">Cargar datos ctranscriptómicos</h1>
+                        <div className=" row g-3 contenedor-columna px-5">
+                            <div className="mb-3">
+                                <input
+                                    type="file"
+                                    className="form-control form-control-lg border border-2 rounded-3 shadow-sm"
+                                    id="archivo"
+                                    onChange={handleCambiarArchicoTranscriptomico}
+                                />
+                            </div>
+                            <div className="text-center my-4">
+                                <button
+                                    type="button"
+                                    className="btn btn-lg boton-verde ms-auto"
+                                    onClick={handleSubirArchivoTranscriptomico}
                                 >
                                     Cargar archivo
                                 </button>
@@ -402,6 +465,6 @@ export default function PaginaCargarDatosPaciente() {
                     </div>
                 </div>
             }
-        </div>
+        </div >
     );
 }

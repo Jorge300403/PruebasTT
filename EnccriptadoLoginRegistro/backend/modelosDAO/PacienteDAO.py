@@ -63,12 +63,12 @@ def cargar_datos_clinicos(db: Session, datos_clinicos: schema_paciente.PacienteA
         return None
 
 
-    paciente.estado_tumor = encriptar_aes.encriptar(datos_clinicos.estado_tumor) if datos_clinicos.estado_tumor is not None else paciente.estado_tumor
-    paciente.er_estado = encriptar_aes.encriptar(datos_clinicos.er_estado) if datos_clinicos.er_estado is not None else paciente.er_estado
-    paciente.pr_estado = encriptar_aes.encriptar(datos_clinicos.pr_estado) if datos_clinicos.pr_estado is not None else paciente.pr_estado
-    paciente.her2_estado = encriptar_aes.encriptar(datos_clinicos.her2_estado) if datos_clinicos.her2_estado is not None else paciente.her2_estado
-    paciente.supervivencia_meses = encriptar_aes.encriptar(datos_clinicos.supervivencia_meses) if datos_clinicos.supervivencia_meses is not None else paciente.supervivencia_meses
-    paciente.evento_recaida = encriptar_aes.encriptar(datos_clinicos.evento_recaida) if datos_clinicos.evento_recaida is not None else paciente.evento_recaida
+    paciente.estado_tumor = encriptar_aes.encriptar(datos_clinicos.estado_tumor) if datos_clinicos.estado_tumor is not None else None
+    paciente.er_estado = encriptar_aes.encriptar(datos_clinicos.er_estado) if datos_clinicos.er_estado is not None else None
+    paciente.pr_estado = encriptar_aes.encriptar(datos_clinicos.pr_estado) if datos_clinicos.pr_estado is not None else None
+    paciente.her2_estado = encriptar_aes.encriptar(datos_clinicos.her2_estado) if datos_clinicos.her2_estado is not None else None
+    paciente.supervivencia_meses = encriptar_aes.encriptar(datos_clinicos.supervivencia_meses) if datos_clinicos.supervivencia_meses is not None else None
+    paciente.evento_recaida = encriptar_aes.encriptar(datos_clinicos.evento_recaida) if datos_clinicos.evento_recaida is not None else None
 
     db.commit()
     db.refresh(paciente)

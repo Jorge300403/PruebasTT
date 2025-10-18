@@ -13,6 +13,7 @@ from modelos.Paciente import Paciente
 from validaciones import validar_archivos
 import os
 import pandas as pd
+import base64
 
 FRONTEND_URL = "http://localhost:3000"
 
@@ -157,70 +158,141 @@ def eliminar_paciente(id_paciente: int, db: Session = Depends(get_db)):
 
 
 
-# Funcion para cargar archivo datos clinicos
+# Funcion para cargar archivo datos clinicos, recibimos el id del paciente y el archivo
 @router.post("/cargar-archivo-clinico/{id_paciente}")
 def cargar_archivo_paciente(id_paciente: int, archivo_subido: UploadFile = File(...), db: Session = Depends(get_db)):
-    #Primero debemos de verificar que se un archivo con extension valida
-    extension = archivo_subido.filename.split(".")[-1].lower()
-    if not validar_archivos.validar_tipo_archivo(archivo_subido):
+
+    #Primero debemos de verificar que se un archivo con extension valida, y la recibimos
+    extension = validar_archivos.validar_tipo_archivo(archivo_subido)
+    if not extension:
+        #Si no regresa nada es que la extension no es valida entonces marcamos el error y mostramos el mensaje
         raise HTTPException(status_code=400, detail="El archivo debe ser Excel o CSV.")
     
-    #Ahora debemos de validar el formato del archivo
-    validacion_formato = validar_archivos.validar_archivo_clinico(archivo_subido)
+    #Ahora debemos de validar el formato del contenido del archivo
+    validacion_formato = validar_archivos.validar_archivo_clinico(archivo_subido, extension)
+    if isinstance(validacion_formato, dict) and validacion_formato.get("msg"):
+        #Si contiene algun error, entonces mandamos el mensaje
+        raise HTTPException(status_code=400, detail=validacion_formato["msg"])
+
+    #Si no hay errores, entonce debemos de leer los valores de ese archivo
+    try:
+        #Generamos la lista recorriendo fila por fila y generando el diccionario con su valor
+        campos_archivo_leido = {row["dato"].lower(): row["valor"] for _, row in validacion_formato.iterrows()}
+
+        #Los valores vacios los declaramos
+        for i, j in campos_archivo_leido.items():
+            if pd.isna(j):
+                #Si esta vacion entonces declaramos el None si no dara error
+                campos_archivo_leido[i] = None
+            else:
+                #Si no, entonces generamos el str del valor
+                campos_archivo_leido[i] = str(j)
+
+    except Exception as error:
+        #Si tenemos un error para leer el archivo, entocnes regresamos el mensaje de error
+        raise HTTPException(status_code=400, detail=f"Formato inesperado en dataframe: {str(error)}")
+
+    #Buscamos que exista el paciente que recibimos su id
+    paciente = PacienteDAO.obtener_paciente_por_id(db, id_paciente)
+    if not paciente:
+        #Si no existe el paciente, regresamos el mensaje del error
+        raise HTTPException(status_code=404, detail="Paciente no encontrado")
+
+    #Creamos el schema para actualizar la bd con los datos leidos
+    valores_campos = schema_paciente.PacienteArchivoClinico(
+        estado_tumor = campos_archivo_leido.get("estado_tumor"),
+        er_estado = campos_archivo_leido.get("er_estado"),
+        pr_estado = campos_archivo_leido.get("pr_estado"),
+        her2_estado = campos_archivo_leido.get("her2_estado"),
+        supervivencia_meses = campos_archivo_leido.get("supervivencia_meses"),
+        evento_recaida = campos_archivo_leido.get("evento_recaida")
+    )
+
+    #Actualizamos el paciente en la bd
+    try:
+        #Mandos la peticion para actualozar su datos, enviando el dato y el id del paciente que debemos de actualizar
+        PacienteDAO.cargar_datos_clinicos(db, valores_campos, id_paciente)
+    except Exception as error:
+        #Si hay algun error al actualizar la bd, entonces regresamos el mensaje de error
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error al actualizar datos del paciente: {str(error)}")
+
+    #Guardamos el archivo de datos clinicos, definimos la carpeta donde se guardara
+    carpeta_destino = "archivosClinicos"
+    #Comprobamos la existencia de la carpeta
+    os.makedirs(carpeta_destino, exist_ok=True)
+    #Generamos el nombre del archivo con el id del paciente y la extension de un a hoja de calculo
+    nombre_guardado = f"paciente_{id_paciente}.xlsx"
+    #Hacemos la ruta del archivo
+    ruta_archivo = os.path.join(carpeta_destino, nombre_guardado)
+    #Regemos el puntero al inicio
+    archivo_subido.file.seek(0)
+    #Abrimos el archivo  creado
+    with open(ruta_archivo, "wb") as archivo_creado:
+        #Dentro del archivo creado escribimos lo que leamos del archivo subido
+        archivo_creado.write(archivo_subido.file.read())
+
+    #Si todo es correcto, regresamos el mensaje de exito y el nombre del archivo que se creo
+    return {
+        "msg": "Archivo validado y datos del paciente actualizados correctamente.",
+        "archivo_guardado": nombre_guardado
+    }
+
+
+
+
+
+# Funcion para cargar archivo datos transcriptomicos
+@router.post("/cargar-archivo-transcriptomico/{id_paciente}")
+def cargar_archivo_paciente(id_paciente: int, archivo_subido: UploadFile = File(...), db: Session = Depends(get_db)):
+    #Primero debemos de verificar que se un archivo con extension valida
+    if not validar_archivos.validar_tipo_archivo(archivo_subido):
+        #Si la extension no es valida entonces marcamos el error y lo regresamos
+        raise HTTPException(status_code=400, detail="El archivo debe ser Excel o CSV.")
+    
+    #Ahora debemos de validar el formato del contenido del archivo
+    validacion_formato = validar_archivos.validar_archivo_transcriptomico(archivo_subido)
     if isinstance(validacion_formato, dict) and validacion_formato.get("msg"):
         #Si contiene algun error,. entonces mandamos el mensaje
         raise HTTPException(status_code=400, detail=validacion_formato["msg"])
 
-    #En dado de que no, debemos de obtnemos el contendido del archivo
+    #En dado de que no tenga errores, debemos de obtnemos el contendido del archivo
     df = validacion_formato
 
-    #Ahora debemos de sacar los valores de ese archivo
-    try:
-        #Definimos los titulos que debe de tener este archivo
-        valores = {row["dato"].lower(): row["valor"] for _, row in df.iterrows()}
-
-        #Los valore vacios los declaramos
-        for k, v in valores.items():
-            if pd.isna(v):
-                valores[k] = None
-            else:
-                valores[k] = str(v)
-
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Formato inesperado en dataframe: {str(e)}")
-
-    paciente = PacienteDAO.obtener_paciente_por_id(db, id_paciente)
-    if not paciente:
-        raise HTTPException(status_code=404, detail="Paciente no encontrado")
-
-    # preparar schema/objeto con los datos
-    datos_en_archivo = schema_paciente.PacienteArchivoClinico(
-        estado_tumor = valores.get("estado_tumor"),
-        er_estado = valores.get("er_estado"),
-        pr_estado = valores.get("pr_estado"),
-        her2_estado = valores.get("her2_estado"),
-        supervivencia_meses = valores.get("supervivencia_meses"),
-        evento_recaida = valores.get("evento_recaida")
-    )
-
-    # 4) actualizar paciente en BD
-    try:
-        PacienteDAO.cargar_datos_clinicos(db, datos_en_archivo, id_paciente)
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=f"Error al actualizar datos del paciente: {str(e)}")
-
-    # 5) guardar archivo en disco (reposicionar puntero porque la validación lo consumió)
-    carpeta_destino = "archivosClinicos"
+    #Guardamos el archivo de datos transcriptomicos encriptado
+    carpeta_destino = "archivosTranscriptomicos"
     os.makedirs(carpeta_destino, exist_ok=True)
-    nombre_guardado = f"paciente_{id_paciente}.{extension}"
+    nombre_guardado = f"paciente_{id_paciente}.xlsx"
     ruta_archivo = os.path.join(carpeta_destino, nombre_guardado)
 
     archivo_subido.file.seek(0)
     with open(ruta_archivo, "wb") as f:
         f.write(archivo_subido.file.read())
 
+    try:
+        #leemos el archivos como bytes
+        archivo_subido.file.seek(0)
+        archivo_bytes = archivo_subido.file.read()  
+
+        # convertimos los bytes a bse 64
+        b64_str = base64.b64encode(archivo_bytes).decode("utf-8")
+
+        # encriptamos todo el archivos
+        encrypted_str = encriptar_aes.encriptar(b64_str) 
+
+        # Guardamos el string cifrado en disco como bytes
+        carpeta_destino = "archivosTranscriptomicos"
+        os.makedirs(carpeta_destino, exist_ok=True)
+        nombre_guardado = f"paciente_{id_paciente}.bin" 
+        ruta_archivo = os.path.join(carpeta_destino, nombre_guardado)
+
+        with open(ruta_archivo, "wb") as f:
+            f.write(encrypted_str.encode("utf-8"))
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al cifrar el archivo: {str(e)}")
+
     return {
-        "msg": "Archivo validado y datos del paciente actualizados correctamente.",
+        "msg": "Archivo validado y expresión génica actualizados correctamente.",
         "archivo_guardado": nombre_guardado
     }

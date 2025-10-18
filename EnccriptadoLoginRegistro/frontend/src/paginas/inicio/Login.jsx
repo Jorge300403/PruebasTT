@@ -95,7 +95,7 @@ export default function PaginaLogin({ }) {
             {/* Izquierda: Formulario */}
             <div className="col-12 col-md-6 contenedor-form-inicio d-flex justify-content-center align-items-center">
                 <div className="card col-md-4 col-12 shadow-lg d-flex flex-column justify-content-between" id="card-login">
-                    <h1 className="text-center texto-azul m-5">¡Bienvenido!</h1>
+                    <h1 className="text-center texto-azul m-4">¡Bienvenido!</h1>
                     <form onSubmit={handleLogin} className="px-5">
                         <div className="mt-4">
                             <label className="form-label texto-negro fs-5">Correo</label>
