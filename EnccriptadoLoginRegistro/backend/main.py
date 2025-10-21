@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from modelos import Usuario, Oncologo, Paciente
+from modelos import Usuario, Oncologo, Paciente, RefrescarToken
 from database import engine
 from routers.router_oncologo import router as router_oncologo
 from routers.router_administrador import router as router_administrador
@@ -12,17 +12,19 @@ app = FastAPI()
 Usuario.Base.metadata.create_all(bind=engine)
 Oncologo.Base.metadata.create_all(bind=engine)
 Paciente.Base.metadata.create_all(bind=engine)
+RefrescarToken.Base.metadata.create_all(bind=engine)
 
 
 
 # Configuración CORS (permitir acceso desde React)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Cambiar por el dominio del frontend
-    allow_credentials=True,
+    allow_origins=["http://localhost:3000"],  # dominio exacto de tu React
+    allow_credentials=True,                  # permite enviar cookies
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 
 # Routers

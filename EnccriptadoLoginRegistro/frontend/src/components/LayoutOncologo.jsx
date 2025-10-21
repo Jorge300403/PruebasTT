@@ -1,3 +1,5 @@
+
+import api from "../services/api";
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
 import usuarioGenericoImg from "../imagenes/usuario-generico.jpg";
@@ -20,8 +22,18 @@ export default function LayoutOncologo() {
 
     //Funcion para ver cerrar sesion
     const handleLogout = () => {
-        localStorage.removeItem("token");
-        navigate("/");
+        api.post("/oncologo/logout")
+        .then(() => {
+            localStorage.removeItem("token");
+            localStorage.removeItem("refresh_token");
+            alert("Sesión cerrada correctamente");
+            navigate("/");
+        })
+        .catch(() => {
+            localStorage.removeItem("token");
+            localStorage.removeItem("refresh_token");
+            navigate("/");
+        });
     };
 
     const esActivo = (path) => location.pathname === path ? "activo" : "";

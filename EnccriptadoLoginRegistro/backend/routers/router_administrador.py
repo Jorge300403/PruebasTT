@@ -2,11 +2,11 @@ from fastapi import Depends, HTTPException, APIRouter, Query
 from sqlalchemy.orm import Session
 from database import get_db
 from modelosDAO import AdministradorDAO
-from validaciones import autentificacion_password
+from validaciones import validaciones_tokens
 from schemas import schema_administrador, schema_oncologo
 from modelos.Usuario import Usuario
 from modelosDAO import OncologoDAO
-from validaciones import encriptar_aes
+from validaciones import modelo_aes
 
 FRONTEND_URL = "http://localhost:3000"
 
@@ -91,9 +91,9 @@ def obtener_detalle_oncologo(id_usuario: int, db: Session = Depends(get_db)):
     # Desencriptar los datos antes de enviarlos al frontend
     return schema_oncologo.OncologoResponsePerfil(
         id_usuario=usuario_seleccionado.id_usuario,
-        correo_electronico=encriptar_aes.desencriptar(usuario_seleccionado.correo_electronico),
-        nombre=encriptar_aes.desencriptar(oncologo_seleccionado.nombre),
-        apellido=encriptar_aes.desencriptar(oncologo_seleccionado.apellido),
-        telefono=encriptar_aes.desencriptar(oncologo_seleccionado.telefono),
-        institucion=encriptar_aes.desencriptar(oncologo_seleccionado.institucion)
+        correo_electronico=modelo_aes.desencriptar(usuario_seleccionado.correo_electronico),
+        nombre=modelo_aes.desencriptar(oncologo_seleccionado.nombre),
+        apellido=modelo_aes.desencriptar(oncologo_seleccionado.apellido),
+        telefono=modelo_aes.desencriptar(oncologo_seleccionado.telefono),
+        institucion=modelo_aes.desencriptar(oncologo_seleccionado.institucion)
     )

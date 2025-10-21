@@ -2,25 +2,32 @@ from fastapi import Depends, HTTPException, APIRouter, Query, File, UploadFile
 from sqlalchemy.orm import Session
 from database import get_db
 from modelosDAO import PacienteDAO
-from validaciones import autentificacion_password
+from validaciones import validaciones_tokens
 from schemas import schema_paciente
 from jose import JWTError, jwt
-from validaciones import encriptar_aes
+from validaciones import modelo_aes
 from fastapi.security import OAuth2PasswordBearer
 from modelosDAO import OncologoDAO
 from modelos.Usuario import Usuario
 from modelos.Paciente import Paciente
-from validaciones import validar_archivos
+from validaciones import validaciones_archivos
 import os
 import pandas as pd
 import base64
 
+
+
+
+
+#Definimos la url del front
 FRONTEND_URL = "http://localhost:3000"
+
+
+
 
 
 # Le asignamos el prefijo de oncologo para la peticiones que solo son del oncologo
 router = APIRouter(prefix="/paciente", tags=["paciente"])
-
 
 
 
@@ -37,7 +44,7 @@ def obtener_usuario_actual(token: str = Depends(oauth2_scheme), db: Session = De
     
     try:
         #Decodificamos el token para obtener el id del usuario
-        id_usuario_en_token = autentificacion_password.decodificar_token_acceso(token)
+        id_usuario_en_token = validaciones_tokens.decodificar_token(token)
     except JWTError:
         #Si no es valido entonces mostramos el error
         raise HTTPException(status_code=401, detail="Token inválido o expirados")
@@ -56,9 +63,10 @@ def obtener_usuario_actual(token: str = Depends(oauth2_scheme), db: Session = De
 
 
 
+#Peticion para crear un nuevo paciente
 @router.post("/registrar")
 #Debemos de recibir los datos para registar el paciente, y la sesion la cual la obtenemos
-def registrar(datos_paciente: schema_paciente.PacienteCreate, db: Session = Depends(get_db), usuario_en_token: Usuario = Depends(obtener_usuario_actual)): 
+def registrar_paciente(datos_paciente: schema_paciente.PacienteCreate, db: Session = Depends(get_db), usuario_en_token: Usuario = Depends(obtener_usuario_actual)): 
 
     #Debemos de obtener los datos que se ingresan en el formulario del front
     validacion_paciente = PacienteDAO.verificar_relacion_oncologo_paciente(db, datos_paciente.correo_electronico, usuario_en_token.id_usuario) 
@@ -82,7 +90,6 @@ def registrar(datos_paciente: schema_paciente.PacienteCreate, db: Session = Depe
 
 # Peticion para obeter datos perfil del paciente, debemos de regresar la infromacion del schema de corresponde al perfil del paciente
 @router.get("/perfil/{id_paciente_seleccionado}", response_model=schema_paciente.PacienteGetPerfil) 
-
 #Primero debemos de obtener el usuario con el que se inicio sesion, para ello accedemos al token que tiene sesion activa
 def get_paciente_perfil(id_paciente_seleccionado: int, db: Session = Depends(get_db)):
     
@@ -97,17 +104,17 @@ def get_paciente_perfil(id_paciente_seleccionado: int, db: Session = Depends(get
     #Si todo esta bien y se encontro, entonces le asignamos los valores al schema dado que eso es lo que debemos de regresar
     return schema_paciente.PacienteGetPerfil(
         id_paciente = paciente_seleccionado.id_paciente,
-        nombre=encriptar_aes.desencriptar(paciente_seleccionado.nombre),
-        apellido=encriptar_aes.desencriptar(paciente_seleccionado.apellido),
-        correo_electronico=encriptar_aes.desencriptar(paciente_seleccionado.correo_electronico),
-        edad=encriptar_aes.desencriptar(paciente_seleccionado.edad),
+        nombre=modelo_aes.desencriptar(paciente_seleccionado.nombre),
+        apellido=modelo_aes.desencriptar(paciente_seleccionado.apellido),
+        correo_electronico=modelo_aes.desencriptar(paciente_seleccionado.correo_electronico),
+        edad=modelo_aes.desencriptar(paciente_seleccionado.edad),
         sexo=paciente_seleccionado.sexo,
-        estado_tumor = encriptar_aes.desencriptar(paciente_seleccionado.estado_tumor),
-        er_estado = encriptar_aes.desencriptar(paciente_seleccionado.er_estado),
-        pr_estado = encriptar_aes.desencriptar(paciente_seleccionado.pr_estado),
-        her2_estado = encriptar_aes.desencriptar(paciente_seleccionado.her2_estado),
-        supervivencia_meses = encriptar_aes.desencriptar(paciente_seleccionado.supervivencia_meses),
-        evento_recaida = encriptar_aes.desencriptar(paciente_seleccionado.evento_recaida)
+        estado_tumor = modelo_aes.desencriptar(paciente_seleccionado.estado_tumor),
+        er_estado = modelo_aes.desencriptar(paciente_seleccionado.er_estado),
+        pr_estado = modelo_aes.desencriptar(paciente_seleccionado.pr_estado),
+        her2_estado = modelo_aes.desencriptar(paciente_seleccionado.her2_estado),
+        supervivencia_meses = modelo_aes.desencriptar(paciente_seleccionado.supervivencia_meses),
+        evento_recaida = modelo_aes.desencriptar(paciente_seleccionado.evento_recaida)
     )
 
 
@@ -117,7 +124,7 @@ def get_paciente_perfil(id_paciente_seleccionado: int, db: Session = Depends(get
 # Peticion para editar los datos del perfil del paciente
 @router.put("/editar")
 # Debe recibir los parametros que se van a editar, asi como la sesion activa
-def editar_datos_oncologo(datos_actualizados: schema_paciente.PacienteUpdate, db: Session = Depends(get_db)):
+def editar_datos_paciente(datos_actualizados: schema_paciente.PacienteUpdate, db: Session = Depends(get_db)):
     #Debemos de obtener los datos que se ingresan en el formulario del front
     validacion_paciente = PacienteDAO.obtener_paciente_por_id(db, datos_actualizados.id_paciente)
 
@@ -163,13 +170,13 @@ def eliminar_paciente(id_paciente: int, db: Session = Depends(get_db)):
 def cargar_archivo_paciente(id_paciente: int, archivo_subido: UploadFile = File(...), db: Session = Depends(get_db)):
 
     #Primero debemos de verificar que se un archivo con extension valida, y la recibimos
-    extension = validar_archivos.validar_tipo_archivo(archivo_subido)
+    extension = validaciones_archivos.validar_tipo_archivo(archivo_subido)
     if not extension:
         #Si no regresa nada es que la extension no es valida entonces marcamos el error y mostramos el mensaje
         raise HTTPException(status_code=400, detail="El archivo debe ser Excel o CSV.")
     
     #Ahora debemos de validar el formato del contenido del archivo
-    validacion_formato = validar_archivos.validar_archivo_clinico(archivo_subido, extension)
+    validacion_formato = validaciones_archivos.validar_archivo_clinico(archivo_subido, extension)
     if isinstance(validacion_formato, dict) and validacion_formato.get("msg"):
         #Si contiene algun error, entonces mandamos el mensaje
         raise HTTPException(status_code=400, detail=validacion_formato["msg"])
@@ -246,12 +253,12 @@ def cargar_archivo_paciente(id_paciente: int, archivo_subido: UploadFile = File(
 @router.post("/cargar-archivo-transcriptomico/{id_paciente}")
 def cargar_archivo_paciente(id_paciente: int, archivo_subido: UploadFile = File(...), db: Session = Depends(get_db)):
     #Primero debemos de verificar que se un archivo con extension valida
-    if not validar_archivos.validar_tipo_archivo(archivo_subido):
+    if not validaciones_archivos.validar_tipo_archivo(archivo_subido):
         #Si la extension no es valida entonces marcamos el error y lo regresamos
         raise HTTPException(status_code=400, detail="El archivo debe ser Excel o CSV.")
     
     #Ahora debemos de validar el formato del contenido del archivo
-    validacion_formato = validar_archivos.validar_archivo_transcriptomico(archivo_subido)
+    validacion_formato = validaciones_archivos.validar_archivo_transcriptomico(archivo_subido)
     if isinstance(validacion_formato, dict) and validacion_formato.get("msg"):
         #Si contiene algun error,. entonces mandamos el mensaje
         raise HTTPException(status_code=400, detail=validacion_formato["msg"])
@@ -278,7 +285,7 @@ def cargar_archivo_paciente(id_paciente: int, archivo_subido: UploadFile = File(
         b64_str = base64.b64encode(archivo_bytes).decode("utf-8")
 
         # encriptamos todo el archivos
-        encrypted_str = encriptar_aes.encriptar(b64_str) 
+        encrypted_str = modelo_aes.encriptar(b64_str) 
 
         # Guardamos el string cifrado en disco como bytes
         carpeta_destino = "archivosTranscriptomicos"

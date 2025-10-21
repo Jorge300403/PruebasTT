@@ -45,7 +45,7 @@ export default function PaginaLogin({ }) {
             const respuesta_back = await api.post("/oncologo/login", { correo_electronico, contrasenia });
 
             //Obtenemos el token que regrese el back
-            localStorage.setItem("token", respuesta_back.data.access_token);
+            localStorage.setItem("access_token", respuesta_back.data.access_token);
 
             //Revisamos si es admin o oncólogo
             if (respuesta_back.data.tipo_usuario === 1) {

@@ -56,8 +56,7 @@ export default function PaginaDatosPerfil() {
 
     // Obtener perfil
     useEffect(() => {
-        const token = localStorage.getItem("token");
-        api.get("/oncologo/perfil", { headers: { Authorization: `Bearer ${token}` } })
+        api.get("/oncologo/perfil")
             .then(res => {
                 setNombre(res.data.nombre);
                 setApellido(res.data.apellido);
@@ -65,25 +64,20 @@ export default function PaginaDatosPerfil() {
                 setInstitucion(res.data.institucion);
                 setCorreo(res.data.correo_electronico);
             })
-            .catch(() => {
-                alert("Sesion caducada");
-                localStorage.removeItem("token");
-                navigate("/")
+            .catch(error => {
+                console.error(error)
             });
     }, []);
 
     // Función para actualizar datos
     const handleActualizar = async () => {
         try {
-            const token = localStorage.getItem("token");
             const res = await api.put("/oncologo/editar", {
                 nombre,
                 apellido,
                 institucion,
                 telefono: telefono.toString()
-            },
-                { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
-            );
+            });
             setModoEdicion(false);
             setErrores({});
             //Si fue exitoso, mostramos el modal de exito y redirigimos al login
@@ -99,7 +93,7 @@ export default function PaginaDatosPerfil() {
                 }
             })
         } catch (err) {
-            console.log(err.response?.data); // Para ver el detalle exacto del error
+            console.error(err.response?.data); // Para ver el detalle exacto del error
             alert("Error al actualizar");
         }
     };
@@ -193,13 +187,16 @@ export default function PaginaDatosPerfil() {
                             onClick={() => {
                                 setModoEdicion(false);
                                 setErrores({});
-                                const token = localStorage.getItem("token");
-                                api.get("/oncologo/perfil", { headers: { Authorization: `Bearer ${token}` } })
+                                api.get("/oncologo/perfil")
                                     .then(res => {
                                         setNombre(res.data.nombre);
                                         setApellido(res.data.apellido);
                                         setTelefono(res.data.telefono.toString());
                                         setInstitucion(res.data.institucion);
+                                        setCorreo(res.data.correo_electronico);
+                                    })
+                                    .catch(error => {
+                                        console.error(error)
                                     });
                             }}
                         >

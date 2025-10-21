@@ -16,16 +16,13 @@ export default function PaginaListaPacientes() {
 
     const obtenerPacientes = async (pagina = 1, limit = itemsPerPage) => {
         try {
-
-            const token = localStorage.getItem("token");
             // USAR backticks para interpolar
-            const res = await api.get(`/oncologo/lista-pacientes?page=${pagina}&limit=${limit}`, { headers: { Authorization: `Bearer ${token}` } });
+            const res = await api.get(`/oncologo/lista-pacientes?page=${pagina}&limit=${limit}`);
             setPacientes(res.data.pacientes || []);
             setTotalPages(res.data.total_pages || 1);
             setPage(res.data.page || 1);
         } catch (err) {
             console.error(err);
-            alert("Error cargando pacientes");
         }
     };
 
@@ -113,7 +110,7 @@ export default function PaginaListaPacientes() {
                                 <td>{paciente.nombre} {paciente.apellido}</td>
                                 <td className="d-none d-sm-table-cell">{paciente.correo_electronico}</td>
                                 <td className="text-center">
-                                    <button type="button" class="btn boton-azul" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <button type="button" className="btn boton-azul" data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="bi bi-gear"></i>
                                     </button>
                                     <ul class="dropdown-menu" style={{ border: "none" }}>

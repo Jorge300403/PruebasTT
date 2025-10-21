@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
+from validaciones import validaciones_tokens
 from modelos.Paciente import Paciente
-from validaciones import encriptar_aes, autentificacion_password
+from validaciones import modelo_aes
 from schemas import schema_paciente
 
 
@@ -8,17 +9,17 @@ from schemas import schema_paciente
 
 def crear_paciente(db: Session, datos_paciente: schema_paciente.PacienteCreate):
     nuevo_paciente = Paciente(
-        nombre = encriptar_aes.encriptar(datos_paciente.nombre),
-        apellido = encriptar_aes.encriptar(datos_paciente.apellido),
-        correo_electronico = encriptar_aes.encriptar(datos_paciente.correo_electronico),
-        edad = encriptar_aes.encriptar(datos_paciente.edad),
+        nombre = modelo_aes.encriptar(datos_paciente.nombre),
+        apellido = modelo_aes.encriptar(datos_paciente.apellido),
+        correo_electronico = modelo_aes.encriptar(datos_paciente.correo_electronico),
+        edad = modelo_aes.encriptar(datos_paciente.edad),
         sexo = datos_paciente.sexo,
-        estado_tumor = encriptar_aes.encriptar(datos_paciente.estado_tumor),
-        er_estado = encriptar_aes.encriptar(datos_paciente.er_estado),
-        pr_estado = encriptar_aes.encriptar(datos_paciente.pr_estado),
-        her2_estado = encriptar_aes.encriptar(datos_paciente.her2_estado),
-        supervivencia_meses = encriptar_aes.encriptar(datos_paciente.supervivencia_meses),
-        evento_recaida = encriptar_aes.encriptar(datos_paciente.evento_recaida),
+        estado_tumor = modelo_aes.encriptar(datos_paciente.estado_tumor),
+        er_estado = modelo_aes.encriptar(datos_paciente.er_estado),
+        pr_estado = modelo_aes.encriptar(datos_paciente.pr_estado),
+        her2_estado = modelo_aes.encriptar(datos_paciente.her2_estado),
+        supervivencia_meses = modelo_aes.encriptar(datos_paciente.supervivencia_meses),
+        evento_recaida = modelo_aes.encriptar(datos_paciente.evento_recaida),
         id_usuario = datos_paciente.id_usuario,
         estado_milestone = 0
     )
@@ -37,17 +38,17 @@ def crear_paciente(db: Session, datos_paciente: schema_paciente.PacienteCreate):
 def actualizar_datos_perfil(db: Session, nuevos_datos_paciente: schema_paciente.PacienteUpdate):
     paciente = db.query(Paciente).filter(Paciente.id_paciente == nuevos_datos_paciente.id_paciente).first()
     
-    paciente.nombre = encriptar_aes.encriptar(nuevos_datos_paciente.nombre)
-    paciente.apellido = encriptar_aes.encriptar(nuevos_datos_paciente.apellido)
-    paciente.correo_electronico = encriptar_aes.encriptar(nuevos_datos_paciente.correo_electronico)
-    paciente.edad = encriptar_aes.encriptar(nuevos_datos_paciente.edad)
+    paciente.nombre = modelo_aes.encriptar(nuevos_datos_paciente.nombre)
+    paciente.apellido = modelo_aes.encriptar(nuevos_datos_paciente.apellido)
+    paciente.correo_electronico = modelo_aes.encriptar(nuevos_datos_paciente.correo_electronico)
+    paciente.edad = modelo_aes.encriptar(nuevos_datos_paciente.edad)
     paciente.sexo = nuevos_datos_paciente.sexo
-    paciente.estado_tumor = encriptar_aes.encriptar(nuevos_datos_paciente.estado_tumor)
-    paciente.er_estado = encriptar_aes.encriptar(nuevos_datos_paciente.er_estado)
-    paciente.pr_estado = encriptar_aes.encriptar(nuevos_datos_paciente.pr_estado)
-    paciente.her2_estado = encriptar_aes.encriptar(nuevos_datos_paciente.her2_estado)
-    paciente.supervivencia_meses = encriptar_aes.encriptar(nuevos_datos_paciente.supervivencia_meses)
-    paciente.evento_recaida = encriptar_aes.encriptar(nuevos_datos_paciente.evento_recaida)
+    paciente.estado_tumor = modelo_aes.encriptar(nuevos_datos_paciente.estado_tumor)
+    paciente.er_estado = modelo_aes.encriptar(nuevos_datos_paciente.er_estado)
+    paciente.pr_estado = modelo_aes.encriptar(nuevos_datos_paciente.pr_estado)
+    paciente.her2_estado = modelo_aes.encriptar(nuevos_datos_paciente.her2_estado)
+    paciente.supervivencia_meses = modelo_aes.encriptar(nuevos_datos_paciente.supervivencia_meses)
+    paciente.evento_recaida = modelo_aes.encriptar(nuevos_datos_paciente.evento_recaida)
 
     db.commit()
     db.refresh(paciente)
@@ -63,12 +64,12 @@ def cargar_datos_clinicos(db: Session, datos_clinicos: schema_paciente.PacienteA
         return None
 
 
-    paciente.estado_tumor = encriptar_aes.encriptar(datos_clinicos.estado_tumor) if datos_clinicos.estado_tumor is not None else None
-    paciente.er_estado = encriptar_aes.encriptar(datos_clinicos.er_estado) if datos_clinicos.er_estado is not None else None
-    paciente.pr_estado = encriptar_aes.encriptar(datos_clinicos.pr_estado) if datos_clinicos.pr_estado is not None else None
-    paciente.her2_estado = encriptar_aes.encriptar(datos_clinicos.her2_estado) if datos_clinicos.her2_estado is not None else None
-    paciente.supervivencia_meses = encriptar_aes.encriptar(datos_clinicos.supervivencia_meses) if datos_clinicos.supervivencia_meses is not None else None
-    paciente.evento_recaida = encriptar_aes.encriptar(datos_clinicos.evento_recaida) if datos_clinicos.evento_recaida is not None else None
+    paciente.estado_tumor = modelo_aes.encriptar(datos_clinicos.estado_tumor) if datos_clinicos.estado_tumor is not None else None
+    paciente.er_estado = modelo_aes.encriptar(datos_clinicos.er_estado) if datos_clinicos.er_estado is not None else None
+    paciente.pr_estado = modelo_aes.encriptar(datos_clinicos.pr_estado) if datos_clinicos.pr_estado is not None else None
+    paciente.her2_estado = modelo_aes.encriptar(datos_clinicos.her2_estado) if datos_clinicos.her2_estado is not None else None
+    paciente.supervivencia_meses = modelo_aes.encriptar(datos_clinicos.supervivencia_meses) if datos_clinicos.supervivencia_meses is not None else None
+    paciente.evento_recaida = modelo_aes.encriptar(datos_clinicos.evento_recaida) if datos_clinicos.evento_recaida is not None else None
 
     db.commit()
     db.refresh(paciente)
@@ -84,7 +85,7 @@ def obtener_paciente_por_coreo(db: Session, correo_electronico: str):
     lista_pacientes = db.query(Paciente).all()
     for paciente in lista_pacientes:
         try:
-            if encriptar_aes.desencriptar(paciente.correo_electronico) == correo_electronico:
+            if modelo_aes.desencriptar(paciente.correo_electronico) == correo_electronico:
                 return paciente
         except:
             continue
@@ -106,7 +107,7 @@ def verificar_relacion_oncologo_paciente(db: Session, correo_electronico: str, i
     lista_pacientes = db.query(Paciente).all()
     for paciente in lista_pacientes:
         try:
-            if encriptar_aes.desencriptar(paciente.correo_electronico) == correo_electronico and paciente.id_usuario == id_usuario:
+            if modelo_aes.desencriptar(paciente.correo_electronico) == correo_electronico and paciente.id_usuario == id_usuario:
                 return paciente
         except:
             continue
@@ -139,9 +140,9 @@ def obtener_pacientes_paginados(db: Session, skip: int = 0, limit: int = 10, id_
     for paciente in lista_pacientes: 
         paciente_schema = schema_paciente.PacienteGetList( 
             id_paciente = paciente.id_paciente,
-            correo_electronico = encriptar_aes.desencriptar(paciente.correo_electronico),
-            nombre = encriptar_aes.desencriptar(paciente.nombre),
-            apellido = encriptar_aes.desencriptar(paciente.apellido),
+            correo_electronico = modelo_aes.desencriptar(paciente.correo_electronico),
+            nombre = modelo_aes.desencriptar(paciente.nombre),
+            apellido = modelo_aes.desencriptar(paciente.apellido),
             estado_milestone = paciente.estado_milestone
         )
         resultado.append(paciente_schema) 
