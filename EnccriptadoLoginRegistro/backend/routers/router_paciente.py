@@ -14,6 +14,8 @@ from validaciones import validaciones_archivos
 import os
 import pandas as pd
 import base64
+from fastapi.responses import RedirectResponse
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 
 
@@ -38,19 +40,27 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="oncologo/login")
 
 
 
+#Definimos la seguridad de la sesion
+seguridad_sesion = HTTPBearer()
+
+
+
+
 
 # Peticion para validar el token de login y obtener al usuario actual, recibimos el token que esta en la sesion
-def obtener_usuario_actual(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)): 
-    
+def obtener_usuario_actual(credenciales: HTTPAuthorizationCredentials = Depends(seguridad_sesion), db: Session = Depends(get_db)): 
+
+    token = credenciales.credentials
     try:
         #Decodificamos el token para obtener el id del usuario
-        id_usuario_en_token = validaciones_tokens.decodificar_token(token)
+        token_acceso_decodificado = validaciones_tokens.decodificar_token(token)
+        id_usuario_en_token = token_acceso_decodificado.get("sub")
     except JWTError:
         #Si no es valido entonces mostramos el error
         raise HTTPException(status_code=401, detail="Token inválido o expirados")
 
     #Si es valido obtenemos el suario completo que corresponde con el id que se guardo en el token
-    usuario_en_token = OncologoDAO.obtener_usuario_por_id(db, id_usuario_en_token)
+    usuario_en_token = OncologoDAO.read_usuario_por_id(db, id_usuario_en_token)
 
     if usuario_en_token is None:
         #Si no hay un usario regresamos el error
@@ -62,14 +72,13 @@ def obtener_usuario_actual(token: str = Depends(oauth2_scheme), db: Session = De
 
 
 
-
 #Peticion para crear un nuevo paciente
 @router.post("/registrar")
 #Debemos de recibir los datos para registar el paciente, y la sesion la cual la obtenemos
 def registrar_paciente(datos_paciente: schema_paciente.PacienteCreate, db: Session = Depends(get_db), usuario_en_token: Usuario = Depends(obtener_usuario_actual)): 
 
     #Debemos de obtener los datos que se ingresan en el formulario del front
-    validacion_paciente = PacienteDAO.verificar_relacion_oncologo_paciente(db, datos_paciente.correo_electronico, usuario_en_token.id_usuario) 
+    validacion_paciente = PacienteDAO.read_verificar_relacion_oncologo_paciente(db, datos_paciente.correo_electronico, usuario_en_token.id_usuario) 
 
     #Debemos de verificar que el correo que se ingreso no este registrado previamente
     if validacion_paciente:
@@ -79,7 +88,7 @@ def registrar_paciente(datos_paciente: schema_paciente.PacienteCreate, db: Sessi
     
     #Si no esta registrado, entonces creamos el nuevo paciente, mandamos la db y los datos del formulario
     datos_paciente.id_usuario = usuario_en_token.id_usuario
-    paciente_creado = PacienteDAO.crear_paciente(db, datos_paciente) 
+    paciente_creado = PacienteDAO.creat_paciente(db, datos_paciente) 
 
     #Si todo esta correcto, regresamos el mensaje de exito
     return {"msg": "Paciente registrado correctamente, ahora te rediregiremos para cargues su datos transcriptomicos", "id_paciente": paciente_creado.id_paciente} 
@@ -88,13 +97,14 @@ def registrar_paciente(datos_paciente: schema_paciente.PacienteCreate, db: Sessi
 
 
 
+
 # Peticion para obeter datos perfil del paciente, debemos de regresar la infromacion del schema de corresponde al perfil del paciente
 @router.get("/perfil/{id_paciente_seleccionado}", response_model=schema_paciente.PacienteGetPerfil) 
 #Primero debemos de obtener el usuario con el que se inicio sesion, para ello accedemos al token que tiene sesion activa
-def get_paciente_perfil(id_paciente_seleccionado: int, db: Session = Depends(get_db)):
-    
+def get_paciente_perfil(id_paciente_seleccionado: int, db: Session = Depends(get_db), usuario_en_token: Usuario = Depends(obtener_usuario_actual)):
+
     #Obteneos los datos del oncologo a partir del usario en token que regresa
-    paciente_seleccionado = PacienteDAO.obtener_paciente_por_id(db, id_paciente_seleccionado)
+    paciente_seleccionado = PacienteDAO.read_paciente_por_id(db, id_paciente_seleccionado)
     
     if not paciente_seleccionado:    
         # Si no se encontro entonces marcamos el error
@@ -105,7 +115,8 @@ def get_paciente_perfil(id_paciente_seleccionado: int, db: Session = Depends(get
     return schema_paciente.PacienteGetPerfil(
         id_paciente = paciente_seleccionado.id_paciente,
         nombre=modelo_aes.desencriptar(paciente_seleccionado.nombre),
-        apellido=modelo_aes.desencriptar(paciente_seleccionado.apellido),
+        apellido_paterno=modelo_aes.desencriptar(paciente_seleccionado.apellido_paterno),
+        apellido_materno=modelo_aes.desencriptar(paciente_seleccionado.apellido_materno),
         correo_electronico=modelo_aes.desencriptar(paciente_seleccionado.correo_electronico),
         edad=modelo_aes.desencriptar(paciente_seleccionado.edad),
         sexo=paciente_seleccionado.sexo,
@@ -124,22 +135,23 @@ def get_paciente_perfil(id_paciente_seleccionado: int, db: Session = Depends(get
 # Peticion para editar los datos del perfil del paciente
 @router.put("/editar")
 # Debe recibir los parametros que se van a editar, asi como la sesion activa
-def editar_datos_paciente(datos_actualizados: schema_paciente.PacienteUpdate, db: Session = Depends(get_db)):
+def editar_datos_paciente(datos_actualizados: schema_paciente.PacienteUpdate, db: Session = Depends(get_db), usuario_en_token: Usuario = Depends(obtener_usuario_actual)):
+    
     #Debemos de obtener los datos que se ingresan en el formulario del front
-    validacion_paciente = PacienteDAO.obtener_paciente_por_id(db, datos_actualizados.id_paciente)
-
+    validacion_paciente = PacienteDAO.read_paciente_por_id(db, datos_actualizados.id_paciente)
+   
     #Debemos de verificar que exista el usuario
     if not validacion_paciente:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     
 
-    validacion_correo = PacienteDAO.obtener_paciente_por_coreo(db, datos_actualizados.correo_electronico)
+    validacion_correo = PacienteDAO.read_paciente_por_coreo(db, datos_actualizados.correo_electronico)
     #Ahora debemos de validar el correo
     if validacion_correo and validacion_correo.id_paciente != datos_actualizados.id_paciente:
         #Si el correo ya esta registrado, entonces mandamos el mensaje de que ya existe este paciente
         raise HTTPException(status_code=400, detail="Esta correo de paciente ya lo has registrado") 
 
-    PacienteDAO.actualizar_datos_perfil(db, datos_actualizados)
+    PacienteDAO.update_datos_perfil_paciente(db, datos_actualizados)
 
     #Si todo esta correcto, regresamos el mensaje de exito
     return {"msg": "Información actualizada."} 
@@ -148,11 +160,11 @@ def editar_datos_paciente(datos_actualizados: schema_paciente.PacienteUpdate, db
 
 
 
+
 # Peticion para eliminar un pacieente
 @router.delete("/eliminar/{id_paciente}")
 #Recibimos el id del paciente que deseamos eliminar 
-def eliminar_paciente(id_paciente: int, db: Session = Depends(get_db)):
-
+def eliminar_paciente(id_paciente: int, db: Session = Depends(get_db), usuario_en_token: Usuario = Depends(obtener_usuario_actual)):
     #Hacamos la peticion de DAO para poder eliminarlo
     validacion_eliminacion = PacienteDAO.eliminar_paciente(db, id_paciente)
     if not validacion_eliminacion:
@@ -167,8 +179,7 @@ def eliminar_paciente(id_paciente: int, db: Session = Depends(get_db)):
 
 # Funcion para cargar archivo datos clinicos, recibimos el id del paciente y el archivo
 @router.post("/cargar-archivo-clinico/{id_paciente}")
-def cargar_archivo_paciente(id_paciente: int, archivo_subido: UploadFile = File(...), db: Session = Depends(get_db)):
-
+def cargar_archivo_paciente(id_paciente: int, archivo_subido: UploadFile = File(...), db: Session = Depends(get_db), usuario_en_token: Usuario = Depends(obtener_usuario_actual)):
     #Primero debemos de verificar que se un archivo con extension valida, y la recibimos
     extension = validaciones_archivos.validar_tipo_archivo(archivo_subido)
     if not extension:
@@ -179,7 +190,7 @@ def cargar_archivo_paciente(id_paciente: int, archivo_subido: UploadFile = File(
     validacion_formato = validaciones_archivos.validar_archivo_clinico(archivo_subido, extension)
     if isinstance(validacion_formato, dict) and validacion_formato.get("msg"):
         #Si contiene algun error, entonces mandamos el mensaje
-        raise HTTPException(status_code=400, detail=validacion_formato["msg"])
+        raise HTTPException(status_code=422, detail=validacion_formato["msg"])
 
     #Si no hay errores, entonce debemos de leer los valores de ese archivo
     try:
@@ -200,7 +211,7 @@ def cargar_archivo_paciente(id_paciente: int, archivo_subido: UploadFile = File(
         raise HTTPException(status_code=400, detail=f"Formato inesperado en dataframe: {str(error)}")
 
     #Buscamos que exista el paciente que recibimos su id
-    paciente = PacienteDAO.obtener_paciente_por_id(db, id_paciente)
+    paciente = PacienteDAO.read_paciente_por_id(db, id_paciente)
     if not paciente:
         #Si no existe el paciente, regresamos el mensaje del error
         raise HTTPException(status_code=404, detail="Paciente no encontrado")
@@ -218,7 +229,7 @@ def cargar_archivo_paciente(id_paciente: int, archivo_subido: UploadFile = File(
     #Actualizamos el paciente en la bd
     try:
         #Mandos la peticion para actualozar su datos, enviando el dato y el id del paciente que debemos de actualizar
-        PacienteDAO.cargar_datos_clinicos(db, valores_campos, id_paciente)
+        PacienteDAO.update_datos_clinicos(db, valores_campos, id_paciente)
     except Exception as error:
         #Si hay algun error al actualizar la bd, entonces regresamos el mensaje de error
         db.rollback()
@@ -247,11 +258,10 @@ def cargar_archivo_paciente(id_paciente: int, archivo_subido: UploadFile = File(
 
 
 
-
-
 # Funcion para cargar archivo datos transcriptomicos
 @router.post("/cargar-archivo-transcriptomico/{id_paciente}")
-def cargar_archivo_paciente(id_paciente: int, archivo_subido: UploadFile = File(...), db: Session = Depends(get_db)):
+def cargar_archivo_paciente(id_paciente: int, archivo_subido: UploadFile = File(...), db: Session = Depends(get_db), usuario_en_token: Usuario = Depends(obtener_usuario_actual)):
+
     #Primero debemos de verificar que se un archivo con extension valida
     if not validaciones_archivos.validar_tipo_archivo(archivo_subido):
         #Si la extension no es valida entonces marcamos el error y lo regresamos
@@ -261,7 +271,7 @@ def cargar_archivo_paciente(id_paciente: int, archivo_subido: UploadFile = File(
     validacion_formato = validaciones_archivos.validar_archivo_transcriptomico(archivo_subido)
     if isinstance(validacion_formato, dict) and validacion_formato.get("msg"):
         #Si contiene algun error,. entonces mandamos el mensaje
-        raise HTTPException(status_code=400, detail=validacion_formato["msg"])
+        raise HTTPException(status_code=422, detail=validacion_formato["msg"])
 
     #En dado de que no tenga errores, debemos de obtnemos el contendido del archivo
     df = validacion_formato

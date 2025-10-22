@@ -21,7 +21,7 @@ export default function LayoutAdministrador() {
 
     //Funcion para ver cerrar sesion
     const handleLogout = () => {
-        localStorage.removeItem("token");
+        localStorage.removeItem("access_token");
         navigate("/");
     };
 

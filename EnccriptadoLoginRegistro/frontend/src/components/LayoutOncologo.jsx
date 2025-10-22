@@ -24,14 +24,12 @@ export default function LayoutOncologo() {
     const handleLogout = () => {
         api.post("/oncologo/logout")
         .then(() => {
-            localStorage.removeItem("token");
-            localStorage.removeItem("refresh_token");
+            localStorage.removeItem("access_token");
             alert("Sesión cerrada correctamente");
             navigate("/");
         })
         .catch(() => {
-            localStorage.removeItem("token");
-            localStorage.removeItem("refresh_token");
+            localStorage.removeItem("access_token");
             navigate("/");
         });
     };

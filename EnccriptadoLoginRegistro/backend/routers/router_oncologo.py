@@ -63,15 +63,16 @@ COOKIE_SAMESITE = "lax"
 #Debemos de recibir los datos para registar el oncologo, y la sesion la cual la obtenemos
 def registrar_oncologo(datos_oncologo: schema_oncologo.OncologoCreate, db: Session = Depends(get_db)): 
 
-    #Debemos de obtener los datos que se ingresan en el formulario del front
-    validacion_usuario = OncologoDAO.obtener_usuario_por_coreo(db, datos_oncologo.correo_electronico) 
 
+    #Debemos de obtener los datos que se ingresan en el formulario del front
+    validacion_usuario = OncologoDAO.read_usuario_por_correo(db, datos_oncologo.correo_electronico) 
+    
     #Debemos de verificar que el correo que se ingreso no este registrado previamente
     if validacion_usuario:
         #Si el correo ya esta registrado, entonces mandamos el mensaje de que ya existe este usuario
         raise HTTPException(status_code=400, detail="El correo ha sido registrado previamente") 
     #Si no esta registrado, entonces creamos el nuevo oncologo, mandamos la db y los datos del formulario
-    oncologo_creado = OncologoDAO.crear_oncologo(db, datos_oncologo) 
+    oncologo_creado = OncologoDAO.creat_oncologo(db, datos_oncologo) 
 
     #Una vez creado entonces hacemos el proceso de validación de cuenta, creamos el token a partir del correo electronico
     token_verificar_correo = validaciones_tokens.crear_token_verificar_correo(str(oncologo_creado.id_usuario)) 
@@ -89,12 +90,14 @@ def registrar_oncologo(datos_oncologo: schema_oncologo.OncologoCreate, db: Sessi
 
 
 
+
 #Peticion para reenviar el correo de verificacion de cuenta
 @router.post("/reenviar-verificacion")
 #Debemos el correo del oncologo, y la sesion la cual la obtenemos
 def reenviar_verificacion_cuenta(datos_oncologo: schema_oncologo.OncologoCorreo, db: Session = Depends(get_db)): 
+    
     #Debemos de obtener los datos que se ingresan en el formulario del front
-    validacion_usuario = OncologoDAO.obtener_usuario_por_coreo(db, datos_oncologo.correo_electronico) 
+    validacion_usuario = OncologoDAO.read_usuario_por_correo(db, datos_oncologo.correo_electronico) 
     
     #Debemos de verificar que el correo que se ingreso exista
     if validacion_usuario:
@@ -109,6 +112,7 @@ def reenviar_verificacion_cuenta(datos_oncologo: schema_oncologo.OncologoCorreo,
 
         #Si todo esta correcto, regresamos el mensaje de exito
         return {"msg": "Revisa tu correo para verificar tu cuenta, enviaremos un enlace para la verificación."} 
+    
 
 
 
@@ -118,21 +122,22 @@ def reenviar_verificacion_cuenta(datos_oncologo: schema_oncologo.OncologoCorreo,
 @router.post("/login")
 #Debemos de recibir el correo y contraseña del oncologo y la db
 def login(datos_oncologo: schema_oncologo.OncologoLogin, response: Response, db: Session = Depends(get_db)): 
-
+  
     #Primero hacemos la verificación si es que esta registrado este usuario a partir de su correo
-    validacion_usuario = OncologoDAO.obtener_usuario_por_coreo(db, datos_oncologo.correo_electronico)
-   
+    validacion_usuario = OncologoDAO.read_usuario_por_correo(db, datos_oncologo.correo_electronico)
+
     if not validacion_usuario:
         #Si el correo no existe entonces mostramos un mensaje 
-        raise HTTPException(status_code=401, detail="El correo ingresado no está registrado")
+        raise HTTPException(status_code=400, detail="El correo ingresado no está registrado")
 
     if not validaciones_tokens.verificar_contrasenia(datos_oncologo.contrasenia, validacion_usuario.contrasenia):
         #Verificamos la contraseña, si es incorrecta entoncces mostramos mensaje, 
-        raise HTTPException(status_code=401, detail="La contraseña es incorrecta")
+        raise HTTPException(status_code=400, detail="La contraseña es incorrecta")
     
     if not validacion_usuario.es_verificado:
         #Si el correo aun no esta verificado entonces mostramos mensaje
         raise HTTPException(status_code=403, detail="Correo no verificado")
+    
     
     #Si no hay errores, creamos el token de acceso donde guardamos el id del correo
     token_acceso = validaciones_tokens.crear_token_acceso(str(validacion_usuario.id_usuario))
@@ -150,11 +155,13 @@ def login(datos_oncologo: schema_oncologo.OncologoLogin, response: Response, db:
         httponly=COOKIE_HTTPONLY,
         secure=COOKIE_SEGURIDAD,
         samesite=COOKIE_SAMESITE,
-        max_age=15 * 60  # 7 dias (en segundos)
+        max_age=5 * 60  # 7 dias (en segundos)
     )
 
     #Si todo salio bien entones regresamos el token y el tipo de token, y el tipo de usuario
     return {"access_token": token_acceso, "token_type": "bearer", "tipo_usuario": validacion_usuario.tipo_usuario}
+ 
+
 
 
 
@@ -163,6 +170,7 @@ def login(datos_oncologo: schema_oncologo.OncologoLogin, response: Response, db:
 @router.post("/refrescar-token")
 #Debemos de recibir la respuesta y la peticion, asi como la sesion
 def refrescar_token(request: Request, response: Response, db: Session = Depends(get_db)):
+    
     #Obtenemos el token a partir de la llave
     token_en_cookie = request.cookies.get(COOKIE_NOMBRE_REFRESCAR)
     if not token_en_cookie:
@@ -184,12 +192,16 @@ def refrescar_token(request: Request, response: Response, db: Session = Depends(
 
     # Verificar en BD si no fue revocado
     es_revocado = RefrescarTokenDAO.read_token_revocado(db, jti)
+
     if es_revocado:
         raise HTTPException(status_code=401, detail="Token refrescar es revocado o inválido")
 
     #Creamos el nuevo token de acceso
     nuevo_token_acceso = validaciones_tokens.crear_token_acceso(str(id_usuario))
+
     return {"access_token": nuevo_token_acceso, "token_type": "bearer"}
+
+
 
 
 
@@ -197,6 +209,7 @@ def refrescar_token(request: Request, response: Response, db: Session = Depends(
 
 # Peticion para validar el token de login y obtener al usuario actual, recibimos el token que esta en la sesion
 def obtener_usuario_actual(credenciales: HTTPAuthorizationCredentials = Depends(seguridad_sesion), db: Session = Depends(get_db)): 
+    
     token = credenciales.credentials
     try:
         #Decodificamos el token para obtener el id del usuario
@@ -206,8 +219,9 @@ def obtener_usuario_actual(credenciales: HTTPAuthorizationCredentials = Depends(
         #Si no es valido entonces mostramos el error
         raise HTTPException(status_code=401, detail="Token inválido o expirados")
 
+
     #Si es valido obtenemos el suario completo que corresponde con el id que se guardo en el token
-    usuario_en_token = OncologoDAO.obtener_usuario_por_id(db, id_usuario_en_token)
+    usuario_en_token = OncologoDAO.read_usuario_por_id(db, id_usuario_en_token)
 
     if usuario_en_token is None:
         #Si no hay un usario regresamos el error
@@ -215,6 +229,7 @@ def obtener_usuario_actual(credenciales: HTTPAuthorizationCredentials = Depends(
     
     #Debemos de regresar el usuario encontrado
     return usuario_en_token
+   
 
 
 
@@ -222,13 +237,13 @@ def obtener_usuario_actual(credenciales: HTTPAuthorizationCredentials = Depends(
 
 # Peticion para obeter datos perfil del oncologo, debemos de regresar la infromacion del schema de corresponde al perfil del oncologo
 @router.get("/perfil", response_model=schema_oncologo.OncologoResponsePerfil) 
-
 #Primero debemos de obtener el usuario con el que se inicio sesion, para ello accedemos al token que tiene sesion activa
 def get_oncologo_perfil(usuario_en_token: Usuario = Depends(obtener_usuario_actual), db: Session = Depends(get_db)):
+
     
     #Obteneos los datos del oncologo a partir del usario en token que regresa
-    oncologo_en_token = OncologoDAO.obtener_oncologo_por_id(db, usuario_en_token.id_usuario)
-    
+    oncologo_en_token = OncologoDAO.read_oncologo_por_id(db, usuario_en_token.id_usuario)
+
     if not oncologo_en_token:    
         # Si no se encontro entonces marcamos el error
         raise HTTPException(status_code=404, detail="Oncólogo no encontrado")
@@ -239,10 +254,12 @@ def get_oncologo_perfil(usuario_en_token: Usuario = Depends(obtener_usuario_actu
         id_usuario = usuario_en_token.id_usuario,
         correo_electronico = modelo_aes.desencriptar(usuario_en_token.correo_electronico),
         nombre = modelo_aes.desencriptar(oncologo_en_token.nombre),
-        apellido = modelo_aes.desencriptar(oncologo_en_token.apellido),
+        apellido_paterno = modelo_aes.desencriptar(oncologo_en_token.apellido_paterno),
+        apellido_materno= modelo_aes.desencriptar(oncologo_en_token.apellido_materno),
         institucion = modelo_aes.desencriptar(oncologo_en_token.institucion),
         telefono = modelo_aes.desencriptar(oncologo_en_token.telefono)
     )
+   
 
 
 
@@ -261,9 +278,10 @@ def verificar_email(token: str = Query(...), db: Session = Depends(get_db)):
         #Si hay un error entonces redirigimos a la pagina de token expirado
         return RedirectResponse(url = f"{FRONTEND_URL}/token-correo-expirado")
 
+
     #Obtenemos el usuario correspondiente segun el correo que esta en el token 
-    usuario_en_token = OncologoDAO.obtener_usuario_por_id(db, id_usuario_en_token) 
-    
+    usuario_en_token = OncologoDAO.read_usuario_por_id(db, id_usuario_en_token) 
+
     if not usuario_en_token:
         #Si no existe el usuario entonces mandamos mensaje de error
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
@@ -273,9 +291,11 @@ def verificar_email(token: str = Query(...), db: Session = Depends(get_db)):
         return RedirectResponse(url = f"{FRONTEND_URL}/correo-verificado-exito")
 
     #Si no estaba verificado entonces lo hacemos, y cambiaos el estado a true y actualizamos en la bd
-    OncologoDAO.verificar_correo(db, usuario_en_token)
+    OncologoDAO.update_verificar_correo(db, usuario_en_token)
+
     #Si se hizo exitosamente la verifcacion del correo, mostramos la pantalla de verificación exitosa
     return RedirectResponse(url = f"{FRONTEND_URL}/correo-verificado-exito")
+
 
 
 
@@ -285,8 +305,10 @@ def verificar_email(token: str = Query(...), db: Session = Depends(get_db)):
 @router.post("/olvido-contrasenia")
 #Recibimos el correo del usuario
 def restablecer_contrasenia(datos_usuario: schema_oncologo.OncologoCorreo, db: Session = Depends(get_db)): #Recibimos el correo del oncologo
-    validacion_usuario = OncologoDAO.obtener_usuario_por_coreo(db, datos_usuario.correo_electronico) # Obtenemos el usuario que se haya encontrado a partir de sus correo electronico
     
+    #Obtenemos el usuario por correo
+    validacion_usuario = OncologoDAO.read_usuario_por_correo(db, datos_usuario.correo_electronico) # Obtenemos el usuario que se haya encontrado a partir de sus correo electronico
+   
     #Si existen entonces debemos de mandar el correo electronico para restablecer la contraseña
     if validacion_usuario:
         #Creamos token para enviar correo y restablecer contrasenia
@@ -299,7 +321,29 @@ def restablecer_contrasenia(datos_usuario: schema_oncologo.OncologoCorreo, db: S
 
         return {"msg": "Si el correo existe, recibirás un enlace para restablecer tu contraseña."} 
     else:        
-        raise HTTPException(status_code=401, detail="Correo no existente")
+        raise HTTPException(status_code=400, detail="Correo no existente")
+    
+
+
+
+
+#Funcion para verificar la validez del token de restablcer contarseña
+@router.get("/token-contrasenia")
+def abrir_formulario_restablecer(token: str = Query(...)):
+    print("Aqui")
+    try:
+        # Verificamos token
+        validaciones_tokens.decodificar_token(token)
+        print("Hola")
+    except jwt.ExpiredSignatureError:
+        #Si es invalido entonces redirigimos a la pantalla de token expirado
+        return RedirectResponse(url=f"{FRONTEND_URL}/token-contrasenia-expirado")
+    except JWTError:
+        return RedirectResponse(url=f"{FRONTEND_URL}/token-contrasenia-expirado")
+    
+    # Token válido → redirigimos al formulario en frontend pasando el token
+    return RedirectResponse(url=f"{FRONTEND_URL}/restablecer-contrasenia?token={token}")
+
     
 
 
@@ -308,6 +352,7 @@ def restablecer_contrasenia(datos_usuario: schema_oncologo.OncologoCorreo, db: S
 @router.post("/restablecer-contrasenia")
 #REcibimmos los nuevos datos de la contrasenia
 def restablecer_contrasenia(datos_usuario: schema_oncologo.OncologoUpdatePassword , db: Session = Depends(get_db)):
+    
     # Decodificamos el correo en el token
     try:
         #Obtenemos el id del usario en token
@@ -316,18 +361,20 @@ def restablecer_contrasenia(datos_usuario: schema_oncologo.OncologoUpdatePasswor
     except JWTError:
         #Si no existe el token
         raise HTTPException(status_code=400, detail="Token inválido o expirado")
-    
+
     #Obtenemos el usuario por id
-    usuario_en_token = OncologoDAO.obtener_usuario_por_id(db, id_usuario_en_token)
+    usuario_en_token = OncologoDAO.read_usuario_por_id(db, id_usuario_en_token)
+
     if not usuario_en_token:
         #Si no existe entonces regresmoa el mensaje de error de usario no encontrado
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
-    
+
     #Si todo es correcta actualizamos la contraseña en la bd
-    OncologoDAO.actualizar_contrasenia(db, usuario_en_token, datos_usuario.contrasenia)
-    
+    OncologoDAO.update_contrasenia(db, usuario_en_token, datos_usuario.contrasenia)
+  
     #Regresamos el mensaje de exito
     return {"msg": "Contraseña restablecida correctamente"}
+
 
 
 
@@ -337,17 +384,20 @@ def restablecer_contrasenia(datos_usuario: schema_oncologo.OncologoUpdatePasswor
 @router.put("/editar")
 # Debe recibir los parametros que se van a editar, asi como la sesion activa
 def editar_datos_oncologo(datos_actualizados: schema_oncologo.OncologoUpdate, usuario_en_token: Usuario = Depends(obtener_usuario_actual), db: Session = Depends(get_db)):
+    
     #Debemos de obtener los datos que se ingresan en el formulario del front
-    validacion_usuario = OncologoDAO.obtener_oncologo_por_id(db, usuario_en_token.id_usuario)
-
+    validacion_usuario = OncologoDAO.read_oncologo_por_id(db, usuario_en_token.id_usuario)
+ 
     #Debemos de verificar que exista el usuario
     if not validacion_usuario:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
-    OncologoDAO.actualizar_datos_perfil(db, usuario_en_token.id_usuario, datos_actualizados)
-
+    #Actualizamos los datos en la bd
+    OncologoDAO.update_datos_perfil(db, usuario_en_token.id_usuario, datos_actualizados)
+  
     #Si todo esta correcto, regresamos el mensaje de exito
     return {"msg": "Información actualizada."} 
+
 
 
 
@@ -356,14 +406,15 @@ def editar_datos_oncologo(datos_actualizados: schema_oncologo.OncologoUpdate, us
 #Funcion obtener lista de pacientes con paginación
 @router.get("/lista-pacientes")
 def listar_pacientes(page: int = 1, limit: int = 10, db: Session = Depends(get_db), usuario_en_token: Usuario = Depends(obtener_usuario_actual)):
+    
     if page < 1:
         page = 1
     if limit < 1:
         limit = 10
 
     skip = (page - 1) * limit
-    pacientes = PacienteDAO.obtener_pacientes_paginados(db, skip, limit, usuario_en_token.id_usuario)
-    total = PacienteDAO.contar_pacientes(db, usuario_en_token.id_usuario)
+    pacientes = PacienteDAO.read_lista_pacientes_paginados(db, skip, limit, usuario_en_token.id_usuario)
+    total = PacienteDAO.read_contar_pacientes(db, usuario_en_token.id_usuario)
     total_pages = (total + limit - 1) // limit
 
     return {

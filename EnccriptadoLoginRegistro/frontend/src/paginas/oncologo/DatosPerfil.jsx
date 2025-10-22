@@ -9,7 +9,8 @@ export default function PaginaDatosPerfil() {
 
     // Estados separados
     const [nombre, setNombre] = useState("");
-    const [apellido, setApellido] = useState("");
+    const [apellido_paterno, setApellidoPaterno] = useState("");
+    const [apellido_materno, setApellidoMaterno] = useState("");
     const [telefono, setTelefono] = useState("");
     const [institucion, setInstitucion] = useState("");
     const [correo, setCorreo] = useState("");
@@ -18,7 +19,8 @@ export default function PaginaDatosPerfil() {
 
     const regex = {
         nombre: /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{1,100}$/,
-        apellido: /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{1,100}$/,
+        apellido_paterno: /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{1,100}$/,
+        apellido_materno: /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{1,100}$/,
         telefono: /^\d{10}$/,
         institucion: /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{1,100}$/,
     };
@@ -29,8 +31,11 @@ export default function PaginaDatosPerfil() {
             case "nombre":
                 if (!regex.nombre.test(value)) message = "Solo letras, máximo 100 caracteres.";
                 break;
-            case "apellido":
-                if (!regex.apellido.test(value)) message = "Solo letras, máximo 100 caracteres.";
+            case "apellido_paterno":
+                if (!regex.apellido_paterno.test(value)) message = "Solo letras, máximo 100 caracteres.";
+                break;
+            case "apellido_materno":
+                if (!regex.apellido_materno.test(value)) message = "Solo letras, máximo 100 caracteres.";
                 break;
             case "telefono":
                 if (!regex.telefono.test(value)) message = "El número debe ser de 10 dígitos.";
@@ -47,7 +52,8 @@ export default function PaginaDatosPerfil() {
     const validarErrores = () => {
         return (
             nombre &&
-            apellido &&
+            apellido_paterno &&
+            apellido_materno &&
             telefono &&
             institucion &&
             !Object.values(errores).some(err => err !== "")
@@ -59,7 +65,8 @@ export default function PaginaDatosPerfil() {
         api.get("/oncologo/perfil")
             .then(res => {
                 setNombre(res.data.nombre);
-                setApellido(res.data.apellido);
+                setApellidoPaterno(res.data.apellido_paterno);
+                setApellidoMaterno(res.data.apellido_materno);
                 setTelefono(res.data.telefono.toString());
                 setInstitucion(res.data.institucion);
                 setCorreo(res.data.correo_electronico);
@@ -74,7 +81,8 @@ export default function PaginaDatosPerfil() {
         try {
             const res = await api.put("/oncologo/editar", {
                 nombre,
-                apellido,
+                apellido_paterno,
+                apellido_materno,
                 institucion,
                 telefono: telefono.toString()
             });
@@ -120,18 +128,34 @@ export default function PaginaDatosPerfil() {
 
                 {/* Apellido */}
                 <div className="col-12 col-md-6 px-5 py-4">
-                    <label className="form-label texto-negro fs-5">Apellido</label>
+                    <label className="form-label texto-negro fs-5">Apellido paterno</label>
                     <input
                         type="text"
-                        className={`form-control input-editar-oncologo ${errores.apellido ? "is-invalid" : ""}`}
-                        value={apellido}
+                        className={`form-control input-editar-oncologo ${errores.apellido_paterno ? "is-invalid" : ""}`}
+                        value={apellido_paterno}
                         disabled={!modoEdicion}
                         onChange={(e) => {
-                            setApellido(e.target.value);
-                            mensajesVerificacion("apellido", e.target.value);
+                            setApellidoPaterno(e.target.value);
+                            mensajesVerificacion("apellido_paterno", e.target.value);
                         }}
                     />
-                    {errores.apellido && <div className="invalid-feedback">{errores.apellido}</div>}
+                    {errores.apellido_paterno && <div className="invalid-feedback">{errores.apellido_paterno}</div>}
+                </div>
+
+                 {/* Apellido */}
+                <div className="col-12 col-md-6 px-5 py-4">
+                    <label className="form-label texto-negro fs-5">Apellido materno</label>
+                    <input
+                        type="text"
+                        className={`form-control input-editar-oncologo ${errores.apellido_materno ? "is-invalid" : ""}`}
+                        value={apellido_materno}
+                        disabled={!modoEdicion}
+                        onChange={(e) => {
+                            setApellidoMaterno(e.target.value);
+                            mensajesVerificacion("apellido_materno", e.target.value);
+                        }}
+                    />
+                    {errores.apellido_materno && <div className="invalid-feedback">{errores.apellido_materno}</div>}
                 </div>
 
                 {/* Telefono */}
@@ -190,7 +214,8 @@ export default function PaginaDatosPerfil() {
                                 api.get("/oncologo/perfil")
                                     .then(res => {
                                         setNombre(res.data.nombre);
-                                        setApellido(res.data.apellido);
+                                        setApellidoPaterno(res.data.apellido_paterno);
+                                        setApellidoMaterno(res.data.apellido_materno);
                                         setTelefono(res.data.telefono.toString());
                                         setInstitucion(res.data.institucion);
                                         setCorreo(res.data.correo_electronico);

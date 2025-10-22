@@ -14,10 +14,10 @@ ALGORITMO_HASH = "HS256"
 
 
 # Definimos los timepos de expiración de cada uno de los token 
-TIEMPO_EXPIRACION_TOKEN_ACCESO = 5 # 15 minutos
-TIEMPO_EXPIRACION_TOKEN_REFRESH = 15 # 7 dias
+TIEMPO_EXPIRACION_TOKEN_ACCESO = 1 # 15 minutos
+TIEMPO_EXPIRACION_TOKEN_REFRESH = 5 # 7 dias
 TIEMPO_EXPIRACION_TOKEN_VERIFICACION_CORREO = 1 # 1 dia
-TIEMPO_EXPIRACION_TOKEN_RESTABLCER_CONTRASENIA = 60 # 60 minutos
+TIEMPO_EXPIRACION_TOKEN_RESTABLCER_CONTRASENIA = 1 # 60 minutos
 
 
 
@@ -105,11 +105,4 @@ def crear_token_restablecer_contrasenia(id_usuario: str) -> str:
 
 # Función para decodificar los token
 def decodificar_token(token: str):
-    try:
-        return jwt.decode(token, LLAVE_HASH, algorithms=[ALGORITMO_HASH])
-    except ExpiredSignatureError:
-        # Token expirado
-        raise HTTPException(status_code=401, detail="Token expirado")
-    except JWTError:
-        # Otro error de token
-        raise HTTPException(status_code=401, detail="Token inválido")
+    return jwt.decode(token, LLAVE_HASH, algorithms=[ALGORITMO_HASH])

@@ -11,7 +11,8 @@ export default function PaginaRegistroOncologo() {
     const [contrasenia, setContrasenia] = useState("");
     const [confirmarContrasenia, setConfirmarContrasenia] = useState("");
     const [nombre, setNombre] = useState("");
-    const [apellido, setApellido] = useState("");
+    const [apellido_paterno, setApellidoPaterno] = useState("");
+    const [apellido_materno, setApellidoMaterno] = useState("");
     const [institucion, setInstitucion] = useState("");
     const [telefono, setTelefono] = useState("");
     const [errores, setErrores] = useState({});
@@ -26,7 +27,8 @@ export default function PaginaRegistroOncologo() {
     //Definimos las expresiones regulares para la validación de los datos
     const regex = {
         nombre: /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{1,100}$/,
-        apellido: /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{1,100}$/,
+        apellido_paterno: /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{1,100}$/,
+        apellido_materno: /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{1,100}$/,
         correo: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
         contrasenia: /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*.\-_])[A-Za-z\d!@#$%^&*.\-_]{8,}$/,
         institucion: /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{1,100}$/,
@@ -42,8 +44,11 @@ export default function PaginaRegistroOncologo() {
             case "nombre":
                 if (!regex.nombre.test(value)) message = "Solo letras, máximo 100 caracteres.";
                 break;
-            case "apellido":
-                if (!regex.apellido.test(value)) message = "Solo letras, máximo 100 caracteres.";
+            case "apellido_paterno":
+                if (!regex.apellido_paterno.test(value)) message = "Solo letras, máximo 100 caracteres.";
+                break;
+            case "apellido_materno":
+                if (!regex.apellido_materno.test(value)) message = "Solo letras, máximo 100 caracteres.";
                 break;
             case "correo":
                 if (!regex.correo.test(value)) message = "Formato de correo inválido.";
@@ -72,7 +77,8 @@ export default function PaginaRegistroOncologo() {
     const validarErrores = () => {
         return (
             nombre &&
-            apellido &&
+            apellido_paterno &&
+            apellido_materno &&
             correo_electronico &&
             contrasenia &&
             confirmarContrasenia &&
@@ -104,7 +110,8 @@ export default function PaginaRegistroOncologo() {
                 correo_electronico,
                 contrasenia,
                 nombre,
-                apellido,
+                apellido_paterno,
+                apellido_materno,
                 institucion,
                 telefono
             });
@@ -237,17 +244,31 @@ export default function PaginaRegistroOncologo() {
                         </div>
 
                         <div className="mt-4">
-                            <label className="form-label texto-negro fs-5">Apellido</label>
+                            <label className="form-label texto-negro fs-5">Apellido paterno</label>
                             <input
-                                className={`form-control texto-negro fs-5 ${errores.apellido ? "is-invalid texto-negro fs-5" : ""}`}
-                                value={apellido}
+                                className={`form-control texto-negro fs-5 ${errores.apellido_paterno ? "is-invalid texto-negro fs-5" : ""}`}
+                                value={apellido_paterno}
                                 onChange={(e) => {
-                                    setApellido(e.target.value);
-                                    mensajesVerificacion("apellido", e.target.value);
+                                    setApellidoPaterno(e.target.value);
+                                    mensajesVerificacion("apellido_paterno", e.target.value);
                                 }}
-                                placeholder="Ingresa tus apellidos"
+                                placeholder="Ingresa tu apellido paterno"
                             />
-                            {errores.apellido && <div className="invalid-feedback">{errores.apellido}</div>}
+                            {errores.apellido_paterno && <div className="invalid-feedback">{errores.apellido_paterno}</div>}
+                        </div>
+
+                        <div className="mt-4">
+                            <label className="form-label texto-negro fs-5">Apellido materno</label>
+                            <input
+                                className={`form-control texto-negro fs-5 ${errores.apellido_materno ? "is-invalid texto-negro fs-5" : ""}`}
+                                value={apellido_materno}
+                                onChange={(e) => {
+                                    setApellidoMaterno(e.target.value);
+                                    mensajesVerificacion("apellido_materno", e.target.value);
+                                }}
+                                placeholder="Ingresa tu apellido materno"
+                            />
+                            {errores.apellido_materno && <div className="invalid-feedback">{errores.apellido_materno}</div>}
                         </div>
 
                         <div className="mt-4">

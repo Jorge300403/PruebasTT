@@ -8,7 +8,8 @@ class Paciente(Base):
 
     id_paciente = Column(Integer, primary_key=True, index=True, autoincrement=True)
     nombre = Column(String(255), nullable=False)
-    apellido = Column(String(255), nullable=False)
+    apellido_paterno = Column(String(255), nullable=False)
+    apellido_materno = Column(String(255), nullable=False)
     correo_electronico = Column(String(255), unique=True, nullable=False)
     edad = Column(String(255), nullable=False)
     sexo = Column(TINYINT(1), nullable=False)

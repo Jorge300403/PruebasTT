@@ -9,7 +9,8 @@ export default function PaginaCargarDatosPaciente() {
 
     // Variables de estado
     const [nombre, setNombre] = useState("");
-    const [apellido, setApellido] = useState("");
+    const [apellido_paterno, setApellidoPaterno] = useState("");
+    const [apellido_materno, setApellidoMaterno] = useState("");
     const [correo_electronico, setCorreoElectronico] = useState("");
     const [edad, setEdad] = useState("");
     const [sexo, setSexo] = useState("");
@@ -32,7 +33,8 @@ export default function PaginaCargarDatosPaciente() {
     // Expresiones regulares
     const regex = {
         nombre: /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{1,100}$/,
-        apellido: /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{1,100}$/,
+        apellido_paterno: /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{1,100}$/,
+        apellido_materno: /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{1,100}$/,
         correo: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
         edad: /^(?:[1-9]?[0-9]|100)$/, // 0-100
     };
@@ -44,8 +46,11 @@ export default function PaginaCargarDatosPaciente() {
             case "nombre":
                 if (!regex.nombre.test(value)) message = "Ingresa solo letras, máximo 100 caracteres.";
                 break;
-            case "apellido":
-                if (!regex.apellido.test(value)) message = "Ingresa solo letras, máximo 100 caracteres.";
+            case "apellido_paterno":
+                if (!regex.apellido_paterno.test(value)) message = "Ingresa solo letras, máximo 100 caracteres.";
+                break;
+            case "apellido_materno":
+                if (!regex.apellido_materno.test(value)) message = "Ingresa solo letras, máximo 100 caracteres.";
                 break;
             case "correo":
                 if (!regex.correo.test(value)) message = "Formato de correo inválido.";
@@ -63,7 +68,8 @@ export default function PaginaCargarDatosPaciente() {
     const validarErrores = () => {
         return (
             nombre &&
-            apellido &&
+            apellido_paterno &&
+            apellido_materno &&
             correo_electronico &&
             edad &&
             sexo !== "" &&
@@ -75,7 +81,8 @@ export default function PaginaCargarDatosPaciente() {
         api.get(`/paciente/perfil/${id_paciente_seleccionado}`)
             .then(res => {
                 setNombre(res.data.nombre);
-                setApellido(res.data.apellido);
+                setApellidoPaterno(res.data.apellido_paterno);
+                setApellidoMaterno(res.data.apellido_materno);
                 setCorreoElectronico(res.data.correo_electronico);
                 setEdad(res.data.edad);
                 setSexo(res.data.sexo);
@@ -103,7 +110,8 @@ export default function PaginaCargarDatosPaciente() {
         api.get(`/paciente/perfil/${id_paciente_seleccionado}`)
             .then(res => {
                 setNombre(res.data.nombre);
-                setApellido(res.data.apellido);
+                setApellidoPaterno(res.data.apellido_paterno);
+                setApellidoMaterno(res.data.apellido_materno);
                 setCorreoElectronico(res.data.correo_electronico);
                 setEdad(res.data.edad);
                 setSexo(res.data.sexo);
@@ -126,16 +134,11 @@ export default function PaginaCargarDatosPaciente() {
             const res = await api.put("/paciente/editar", {
                 id_paciente: id_paciente_seleccionado,
                 nombre,
-                apellido,
+                apellido_paterno,
+                apellido_materno,
                 correo_electronico,
                 edad,
                 sexo,
-                estado_tumor: estado_tumor || null,
-                er_estado: er_estado || null,
-                pr_estado: pr_estado || null,
-                her2_estado: her2_estado || null,
-                supervivencia_meses: supervivencia_meses || null,
-                evento_recaida: evento_recaida || null,
             });
             setModoEdicion(false);
             setErrores({});
@@ -151,7 +154,27 @@ export default function PaginaCargarDatosPaciente() {
                     confirmButton: "btn-lg boton-azul"
                 }
             }).then(() => {
+                 //Restauramos los valores de los input
+                api.get(`/paciente/perfil/${id_paciente_seleccionado}`)
+                    .then(res => {
+                        setNombre(res.data.nombre);
+                        setApellidoPaterno(res.data.apellido_paterno);
+                        setApellidoMaterno(res.data.apellido_materno);
+                        setCorreoElectronico(res.data.correo_electronico);
+                        setEdad(res.data.edad);
+                        setSexo(res.data.sexo);
+                        setEstadoTumor(res.data.estado_tumor);
+                        setErEstado(res.data.er_estado);
+                        setPrEstado(res.data.pr_estado);
+                        setHer2Estado(res.data.her2_estado);
+                        setSupervivenciaMeses(res.data.supervivencia_meses);
+                        setRecaida(res.data.evento_recaida);
+                    })
+                    .catch(() => {
+                        alert("Error al cargar los datos");
+                    });
                 setModoEdicion(false)
+                
             });
         } catch (err) {
             console.log(err.response?.data); // Para ver el detalle exacto del error
@@ -207,7 +230,8 @@ export default function PaginaCargarDatosPaciente() {
                 api.get(`/paciente/perfil/${id_paciente_seleccionado}`)
                     .then(res => {
                         setNombre(res.data.nombre);
-                        setApellido(res.data.apellido);
+                        setApellidoPaterno(res.data.apellido_paterno);
+                        setApellidoMaterno(res.data.apellido_materno);
                         setCorreoElectronico(res.data.correo_electronico);
                         setEdad(res.data.edad);
                         setSexo(res.data.sexo);
@@ -295,19 +319,36 @@ export default function PaginaCargarDatosPaciente() {
 
                     {/* Apellido */}
                     <div className="col-12 col-md-6 px-5 py-1">
-                        <label className="form-label texto-negro fs-5">Apellido *</label>
+                        <label className="form-label texto-negro fs-5">Apellido paterno*</label>
                         <input
                             type="text"
-                            className={`form-control fs-5 texto-negro ${errores.apellido ? "is-invalid" : ""}`}
-                            value={apellido}
+                            className={`form-control fs-5 texto-negro ${errores.apellido_paterno ? "is-invalid" : ""}`}
+                            value={apellido_paterno}
                             disabled={!modoEdicion}
                             onChange={(e) => {
-                                setApellido(e.target.value);
-                                mensajesVerificacion("apellido", e.target.value);
+                                setApellidoPaterno(e.target.value);
+                                mensajesVerificacion("apellido_paterno", e.target.value);
                             }}
-                            placeholder="Ingresa apellido paciente"
+                            placeholder="Ingresa apellido paterno paciente"
                         />
-                        {errores.apellido && <div className="invalid-feedback">{errores.apellido}</div>}
+                        {errores.apellido_paterno && <div className="invalid-feedback">{errores.apellido_paterno}</div>}
+                    </div>
+
+                    {/* Apellido */}
+                    <div className="col-12 col-md-6 px-5 py-1">
+                        <label className="form-label texto-negro fs-5">Apellido materno*</label>
+                        <input
+                            type="text"
+                            className={`form-control fs-5 texto-negro ${errores.apellido_materno ? "is-invalid" : ""}`}
+                            value={apellido_materno}
+                            disabled={!modoEdicion}
+                            onChange={(e) => {
+                                setApellidoMaterno(e.target.value);
+                                mensajesVerificacion("apellido_materno", e.target.value);
+                            }}
+                            placeholder="Ingresa apellido paterno paciente"
+                        />
+                        {errores.apellido_materno && <div className="invalid-feedback">{errores.apellido_materno}</div>}
                     </div>
 
                     {/* Correo */}
@@ -385,7 +426,7 @@ export default function PaginaCargarDatosPaciente() {
                     <div className="row g-3 pb-5 contenedor-datos-paciente-carga contenedor-columna">
                         <h1 className="text-center texto-azul p-5">Datos del paciente</h1>
                         <div className="col-12 col-md-6 px-5 py-1">
-                            <label className="form-label texto-negro fs-4">Nombre: {nombre} {apellido}</label>
+                            <label className="form-label texto-negro fs-4">Nombre: {nombre} {apellido_paterno} {apellido_materno}</label>
                             <br />
                             <label className="form-label texto-negro fs-4">Correo: {correo_electronico}</label>
                             <br />

@@ -7,7 +7,8 @@ import revisarCorreoImg from "../../imagenes/revisar-correo.jpg"
 export default function PaginaRegistroPaciente() {
     // Variables de estado
     const [nombre, setNombre] = useState("");
-    const [apellido, setApellido] = useState("");
+    const [apellido_paterno, setApellidoPaterno] = useState("");
+    const [apellido_materno, setApellidoMaterno] = useState("");
     const [correo_electronico, setCorreoElectronico] = useState("");
     const [edad, setEdad] = useState("");
     const [sexo, setSexo] = useState("");
@@ -26,7 +27,8 @@ export default function PaginaRegistroPaciente() {
     // Expresiones regulares
     const regex = {
         nombre: /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{1,100}$/,
-        apellido: /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{1,100}$/,
+        apellido_paterno: /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{1,100}$/,
+        apellido_materno: /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{1,100}$/,
         correo: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
         edad: /^(?:[1-9]?[0-9]|100)$/, // 0-100
     };
@@ -38,8 +40,11 @@ export default function PaginaRegistroPaciente() {
             case "nombre":
                 if (!regex.nombre.test(value)) message = "Ingresa solo letras, máximo 100 caracteres.";
                 break;
-            case "apellido":
-                if (!regex.apellido.test(value)) message = "Ingresa solo letras, máximo 100 caracteres.";
+            case "apellido_paterno":
+                if (!regex.apellido_paterno.test(value)) message = "Ingresa solo letras, máximo 100 caracteres.";
+                break;
+            case "apellido_materno":
+                if (!regex.apellido_materno.test(value)) message = "Ingresa solo letras, máximo 100 caracteres.";
                 break;
             case "correo":
                 if (!regex.correo.test(value)) message = "Formato de correo inválido.";
@@ -57,7 +62,8 @@ export default function PaginaRegistroPaciente() {
     const validarErrores = () => {
         return (
             nombre &&
-            apellido &&
+            apellido_paterno &&
+            apellido_materno &&
             correo_electronico &&
             edad &&
             sexo !== "" &&
@@ -79,10 +85,10 @@ export default function PaginaRegistroPaciente() {
         }
 
         try {
-            const token = localStorage.getItem("token");
             const respuesta_back = await api.post("/paciente/registrar", {
                 nombre,
-                apellido,
+                apellido_paterno,
+                apellido_materno,
                 correo_electronico,
                 edad,
                 sexo,
@@ -93,9 +99,7 @@ export default function PaginaRegistroPaciente() {
                 supervivencia_meses: supervivencia_meses || null,
                 evento_recaida: evento_recaida || null,
                 id_usuario: "0"
-            },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            });
 
             Swal.fire({
                 imageUrl: revisarCorreoImg,
@@ -147,18 +151,34 @@ export default function PaginaRegistroPaciente() {
 
                 {/* Apellido */}
                 <div className="col-12 col-md-6 px-5 py-4">
-                    <label className="form-label texto-negro fs-5">Apellido *</label>
+                    <label className="form-label texto-negro fs-5">Apellido paterno *</label>
                     <input
                         type="text"
-                        className={`form-control fs-5 texto-negro ${errores.apellido ? "is-invalid" : ""}`}
-                        value={apellido}
+                        className={`form-control fs-5 texto-negro ${errores.apellido_paterno ? "is-invalid" : ""}`}
+                        value={apellido_paterno}
                         onChange={(e) => {
-                            setApellido(e.target.value);
-                            mensajesVerificacion("apellido", e.target.value);
+                            setApellidoPaterno(e.target.value);
+                            mensajesVerificacion("apellido_paterno", e.target.value);
                         }}
-                        placeholder="Ingresa apellido paciente"
+                        placeholder="Ingresa apellido paterno del paciente"
                     />
-                    {errores.apellido && <div className="invalid-feedback">{errores.apellido}</div>}
+                    {errores.apellido_paterno && <div className="invalid-feedback">{errores.apellido_paterno}</div>}
+                </div>
+
+                {/* Apellido */}
+                <div className="col-12 col-md-6 px-5 py-4">
+                    <label className="form-label texto-negro fs-5">Apellido materno *</label>
+                    <input
+                        type="text"
+                        className={`form-control fs-5 texto-negro ${errores.apellido_materno ? "is-invalid" : ""}`}
+                        value={apellido_materno}
+                        onChange={(e) => {
+                            setApellidoMaterno(e.target.value);
+                            mensajesVerificacion("apellido_materno", e.target.value);
+                        }}
+                        placeholder="Ingresa apellido materno del paciente"
+                    />
+                    {errores.apellido_materno && <div className="invalid-feedback">{errores.apellido_materno}</div>}
                 </div>
 
                 {/* Correo */}

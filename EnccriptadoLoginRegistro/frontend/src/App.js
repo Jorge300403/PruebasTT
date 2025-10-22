@@ -13,6 +13,7 @@ import PaginaRestablecerContrasenia from './paginas/inicio/RestablecerContraseni
 import PaginaCorreoNoVerificado from './paginas/inicio/CorreoNoVerificado';
 import PaginaCorreoVerificadoExito from './paginas/inicio/CorreoVerificadoExito';
 import PaginaTokenCorreoExpirado from './paginas/inicio/TokenCorreoExpirado';
+import PaginaTokenContraseniaExpirado from './paginas/inicio/TokenContraseniaExpirado';
 import PaginaSesionCaducada from './paginas/inicio/SesionCaducada';
 
 
@@ -53,6 +54,7 @@ function App() {
           <Route path='correo-no-verificado' element={<PaginaCorreoNoVerificado />} />
           <Route path='correo-verificado-exito' element={<PaginaCorreoVerificadoExito />} />
           <Route path='token-correo-expirado' element={<PaginaTokenCorreoExpirado />} />
+          <Route path='token-contrasenia-expirado' element={<PaginaTokenContraseniaExpirado />} />
           <Route path='sesion-caducada' element={<PaginaSesionCaducada />} />
         </Route>
 

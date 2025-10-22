@@ -5,6 +5,8 @@ from routers.router_oncologo import router as router_oncologo
 from routers.router_administrador import router as router_administrador
 from routers.router_paciente import router as router_paciente
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
+from validaciones.validaciones_datos import validation_exception_handler
 
 app = FastAPI()
 
@@ -13,6 +15,12 @@ Usuario.Base.metadata.create_all(bind=engine)
 Oncologo.Base.metadata.create_all(bind=engine)
 Paciente.Base.metadata.create_all(bind=engine)
 RefrescarToken.Base.metadata.create_all(bind=engine)
+
+
+
+
+# Registramos el manejador de validaciones personalizados
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
 
 
 

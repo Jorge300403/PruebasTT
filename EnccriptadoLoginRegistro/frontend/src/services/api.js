@@ -1,4 +1,3 @@
-// src/services/api.js
 import axios from "axios";
 import { navigate } from "react-router-dom";
 
@@ -29,9 +28,13 @@ api.interceptors.response.use(
       return Promise.reject(err);
     }
 
+    // Alert: access token expirado
+    alert(" Access token expirado, intentando refrescar...");
+
     // Evitar loop infinito con la ruta /refresh-token
     if (originalRequest.url.includes("/refrescar-token")) {
       // Falló el refresh -> forzar logout
+      alert("Refresh token inválido o expirado, cerrando sesión...");
       localStorage.removeItem("access_token");
       window.location.href = "/sesion-caducada";
       return Promise.reject(err);
@@ -50,7 +53,9 @@ api.interceptors.response.use(
 
     return new Promise(async (resolve, reject) => {
       try {
-        // Petición al backend para refrescar usando cookie httpOnly
+        // Alert: haciendo refresh token
+        alert(" Haciendo refresh del token...");
+
         const rs = await axios.post(
           `${process.env.REACT_APP_API_URL || "http://localhost:8000"}/oncologo/refrescar-token`,
           {},
@@ -58,6 +63,10 @@ api.interceptors.response.use(
         );
 
         const newToken = rs.data.access_token;
+
+        // Alert: refresh exitoso
+        alert("Token refrescado correctamente");
+
         localStorage.setItem("access_token", newToken);
         api.defaults.headers.common["Authorization"] = "Bearer " + newToken;
         originalRequest.headers["Authorization"] = "Bearer " + newToken;
@@ -65,7 +74,7 @@ api.interceptors.response.use(
         resolve(api(originalRequest));
       } catch (e) {
         processQueue(e, null);
-        // redirigir a sesion caducada
+        alert(" No se pudo refrescar el token, cerrando sesión...");
         localStorage.removeItem("access_token");
         window.location.href = "/sesion-caducada";
         reject(e);

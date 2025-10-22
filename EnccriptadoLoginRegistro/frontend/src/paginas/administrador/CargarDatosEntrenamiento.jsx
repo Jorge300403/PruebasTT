@@ -15,7 +15,7 @@ export default function PaginaCargarDatosEntrenamiento() {
 
     // Logout
     const handleLogout = () => {
-        localStorage.removeItem("token");
+        localStorage.removeItem("access_token");
         navigate("/");
     };
 

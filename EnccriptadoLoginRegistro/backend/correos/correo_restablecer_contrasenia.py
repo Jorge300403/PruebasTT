@@ -9,13 +9,14 @@ SMTP_PUERTO = 587
 SMTP_CORREO = "srtcdmbd@gmail.com"
 SMTP_CONTRASENIA = "nfuhvucavlpsdksg" 
 FRONTEND_URL = "http://localhost:3000"
+BACKEND_URL = "http://127.0.0.1:8000"
     
 
     
 def enviar_correo_restablecer_contrasenia(correo_electronico: str, token:str):
     print("correo recibido: " + modelo_aes.desencriptar(correo_electronico))
     try:
-        link_verificacion = f"{FRONTEND_URL}/restablecer-contrasenia?token={token}"
+        link_verificacion = f"{BACKEND_URL}/oncologo/token-contrasenia?token={token}"
 
         msg = EmailMessage()
         msg["Subject"] = "Restablecer contraseña"
