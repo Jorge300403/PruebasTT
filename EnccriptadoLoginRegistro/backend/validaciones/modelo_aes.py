@@ -1,6 +1,25 @@
 from Crypto.Cipher import AES
 import base64
 import os
+import bcrypt
+
+# Cremos la funcion para hash la contraseña, recibiendo el str de la contrasenia
+def hash_contrasenia(contrasenia: str) -> str:
+    #Regresamos la contraseña hash con utf-8
+    return bcrypt.hashpw(contrasenia.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+
+
+
+
+# Creamos la funcion para verificar la contraseña, recibiendo la conrtraseña ingresa str y la hash
+def verificar_contrasenia(contrasenia_ingresada: str, contrasenia_hash: str) -> bool:
+    #Si estas coiciden entonces regresamos la validacion
+    return bcrypt.checkpw(contrasenia_ingresada.encode("utf-8"), contrasenia_hash.encode("utf-8"))
+
+
+
+
 
 # Clave secreta de 32 bytes (guardar en .env)
 LLAVE_SECRETA = os.getenv("LLAVE_SECRETA", "clave_super_segura_de_32bytes!!!").encode("utf-8")

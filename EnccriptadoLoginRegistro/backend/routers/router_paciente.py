@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException, APIRouter, Query, File, UploadFile
 from sqlalchemy.orm import Session
 from database import get_db
-from modelosDAO import PacienteDAO
+from modelosDAO import PacienteDAO, ExpresionGenicaDAO
 from validaciones import validaciones_tokens
 from schemas import schema_paciente
 from jose import JWTError, jwt
@@ -14,8 +14,13 @@ from validaciones import validaciones_archivos
 import os
 import pandas as pd
 import base64
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, FileResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet
+import tempfile
 
 
 
@@ -235,20 +240,33 @@ def cargar_archivo_paciente(id_paciente: int, archivo_subido: UploadFile = File(
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error al actualizar datos del paciente: {str(error)}")
 
-    #Guardamos el archivo de datos clinicos, definimos la carpeta donde se guardara
-    carpeta_destino = "archivosClinicos"
-    #Comprobamos la existencia de la carpeta
-    os.makedirs(carpeta_destino, exist_ok=True)
-    #Generamos el nombre del archivo con el id del paciente y la extension de un a hoja de calculo
-    nombre_guardado = f"paciente_{id_paciente}.xlsx"
-    #Hacemos la ruta del archivo
-    ruta_archivo = os.path.join(carpeta_destino, nombre_guardado)
-    #Regemos el puntero al inicio
+    
     archivo_subido.file.seek(0)
-    #Abrimos el archivo  creado
-    with open(ruta_archivo, "wb") as archivo_creado:
-        #Dentro del archivo creado escribimos lo que leamos del archivo subido
-        archivo_creado.write(archivo_subido.file.read())
+    with open(ruta_archivo, "wb") as f:
+        f.write(archivo_subido.file.read())
+
+    try:
+        #leemos el archivos como bytes
+        archivo_subido.file.seek(0)
+        archivo_bytes = archivo_subido.file.read()  
+
+        # convertimos los bytes a bse 64
+        b64_str = base64.b64encode(archivo_bytes).decode("utf-8")
+
+        # encriptamos todo el archivos
+        encrypted_str = modelo_aes.encriptar(b64_str) 
+
+        # Guardamos el string cifrado en disco como bytes
+        carpeta_destino = "archivosClinicos"
+        os.makedirs(carpeta_destino, exist_ok=True)
+        nombre_guardado = f"paciente_{id_paciente}.bin" 
+        ruta_archivo = os.path.join(carpeta_destino, nombre_guardado)
+
+        with open(ruta_archivo, "wb") as f:
+            f.write(encrypted_str.encode("utf-8"))
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al cifrar el archivo: {str(e)}")
 
     #Si todo es correcto, regresamos el mensaje de exito y el nombre del archivo que se creo
     return {
@@ -273,14 +291,19 @@ def cargar_archivo_paciente(id_paciente: int, archivo_subido: UploadFile = File(
         #Si contiene algun error,. entonces mandamos el mensaje
         raise HTTPException(status_code=422, detail=validacion_formato["msg"])
 
-    #En dado de que no tenga errores, debemos de obtnemos el contendido del archivo
+    #En dado de que no tenga errores, debemos de obtnemos el contendido del archivo y guardarlo
     df = validacion_formato
+    print("HOla")
+     # Inserción en la tabla expresion_genica
+    ExpresionGenicaDAO.creat_expresion_genicas(db, id_paciente, df)
+
 
     #Guardamos el archivo de datos transcriptomicos encriptado
     carpeta_destino = "archivosTranscriptomicos"
     os.makedirs(carpeta_destino, exist_ok=True)
     nombre_guardado = f"paciente_{id_paciente}.xlsx"
     ruta_archivo = os.path.join(carpeta_destino, nombre_guardado)
+
 
     archivo_subido.file.seek(0)
     with open(ruta_archivo, "wb") as f:
@@ -313,3 +336,83 @@ def cargar_archivo_paciente(id_paciente: int, archivo_subido: UploadFile = File(
         "msg": "Archivo validado y expresión génica actualizados correctamente.",
         "archivo_guardado": nombre_guardado
     }
+
+
+
+
+
+# Funcion para obtener los resultados en forma de PDF
+@router.get("/generar-pdf/{id_paciente}")
+def generar_pdf(id_paciente: int, db: Session = Depends(get_db)):
+    
+    #Obtenemos los datos del paciente
+    paciente = db.query(Paciente).filter(Paciente.id_paciente == id_paciente).first()
+    if not paciente:
+        raise HTTPException(status_code=404, detail="Paciente no encontrado")
+
+    #Obtenemos las expresiones génicas del paciente
+    expresiones = ExpresionGenicaDAO.read_expresion_genica_completa(db, id_paciente)
+
+    #Primero debemos de crear un archivo temporal
+    tmp_pdf = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
+    ruta_pdf = tmp_pdf.name
+
+    # Ahora creamos el documento PDF
+    doc = SimpleDocTemplate(ruta_pdf, pagesize=letter)
+    elementos = []
+    estilos = getSampleStyleSheet()
+
+    #Título del documento
+    elementos.append(Paragraph("Resultados análisis de Expresión Génica", estilos["Title"]))
+    elementos.append(Spacer(1, 12))
+
+    #Datos del paciente
+    datos_paciente = [
+        ["Nombre", f"{modelo_aes.desencriptar(paciente.nombre)} {modelo_aes.desencriptar(paciente.apellido_paterno)} {modelo_aes.desencriptar(paciente.apellido_materno)}"],
+        ["Correo", modelo_aes.desencriptar(paciente.correo_electronico)],
+        ["Edad", modelo_aes.desencriptar(paciente.edad)],
+        ["Sexo", "Femenino" if paciente.sexo == 0 else "Masculino"],
+        ["Estado Tumor", modelo_aes.desencriptar(paciente.estado_tumor) or "No registrado"],
+        ["ER", modelo_aes.desencriptar(paciente.er_estado) or "No registrado"],
+        ["PR", modelo_aes.desencriptar(paciente.pr_estado) or "No registrado"],
+        ["HER2", modelo_aes.desencriptar(paciente.her2_estado) or "No registrado"],
+    ]
+
+    tabla_paciente = Table(datos_paciente, hAlign="LEFT")
+    tabla_paciente.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (0, -1), colors.lightgrey),
+        ("BOX", (0, 0), (-1, -1), 1, colors.black),
+        ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.grey),
+    ]))
+    elementos.append(tabla_paciente)
+    elementos.append(Spacer(1, 20))
+
+    #Tabla de expresión génica
+    datos_expresion = [["Gen", "Valor de Expresión"]]
+    for expresion, gen in expresiones:
+        try:
+            nombre_gen = modelo_aes.desencriptar(gen.nombre)
+        except Exception:
+            nombre_gen = "(Error de desencriptado)"
+        datos_expresion.append([nombre_gen, expresion.valor_expresion])
+
+    tabla_expresion = Table(datos_expresion, repeatRows=1)
+    tabla_expresion.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4F81BD")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
+        ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+        ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
+    ]))
+    elementos.append(tabla_expresion)
+
+    # Generar PDF
+    doc.build(elementos)
+
+    return FileResponse(
+        ruta_pdf,
+        media_type="application/pdf",
+        filename=f"reporte_paciente_{id_paciente}.pdf"
+    )

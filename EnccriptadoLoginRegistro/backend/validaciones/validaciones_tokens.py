@@ -14,10 +14,10 @@ ALGORITMO_HASH = "HS256"
 
 
 # Definimos los timepos de expiración de cada uno de los token 
-TIEMPO_EXPIRACION_TOKEN_ACCESO = 1 # 15 minutos
-TIEMPO_EXPIRACION_TOKEN_REFRESH = 5 # 7 dias
+TIEMPO_EXPIRACION_TOKEN_ACCESO = 15 # 15 minutos
+TIEMPO_EXPIRACION_TOKEN_REFRESH = 7 # 7 dias
 TIEMPO_EXPIRACION_TOKEN_VERIFICACION_CORREO = 1 # 1 dia
-TIEMPO_EXPIRACION_TOKEN_RESTABLCER_CONTRASENIA = 1 # 60 minutos
+TIEMPO_EXPIRACION_TOKEN_RESTABLCER_CONTRASENIA = 60 # 60 minutos
 
 
 
@@ -66,7 +66,7 @@ def crear_token_refrescar(id_usuario: str, jti: Optional[str] = None) -> tuple[s
         "sub": id_usuario,
         "purpose": "crear_token_refrescar",
         #Le damos un tiempo de expiracion de 7 dias
-        "exp": datetime.utcnow() + timedelta(minutes=TIEMPO_EXPIRACION_TOKEN_REFRESH),
+        "exp": datetime.utcnow() + timedelta(days=TIEMPO_EXPIRACION_TOKEN_REFRESH),
         "jti": jti
     }
     token = jwt.encode(codificar_token, LLAVE_HASH, algorithm=ALGORITMO_HASH)
@@ -82,7 +82,7 @@ def crear_token_verificar_correo(id_usuario: str) -> str:
     codificar_token = {
         "sub": id_usuario,
         "purpose": "verificar_correo",
-        "exp": datetime.utcnow() + timedelta(minutes=TIEMPO_EXPIRACION_TOKEN_VERIFICACION_CORREO),
+        "exp": datetime.utcnow() + timedelta(days=TIEMPO_EXPIRACION_TOKEN_VERIFICACION_CORREO),
     }
     return jwt.encode(codificar_token, LLAVE_HASH, algorithm=ALGORITMO_HASH)
 

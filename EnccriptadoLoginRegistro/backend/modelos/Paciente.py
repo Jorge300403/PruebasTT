@@ -28,3 +28,4 @@ class Paciente(Base):
 
     # Relación con la tabla de oncologo
     oncologo = relationship("Oncologo", backref="pacientes")
+    expresiones_genicas = relationship("ExpresionGenica", back_populates="paciente")

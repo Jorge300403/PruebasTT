@@ -70,12 +70,14 @@ def registrar_oncologo(datos_oncologo: schema_oncologo.OncologoCreate, db: Sessi
     #Debemos de verificar que el correo que se ingreso no este registrado previamente
     if validacion_usuario:
         #Si el correo ya esta registrado, entonces mandamos el mensaje de que ya existe este usuario
-        raise HTTPException(status_code=400, detail="El correo ha sido registrado previamente") 
+        raise HTTPException(status_code=400, detail="El correo ha sido registrado previamente.") 
+    
     #Si no esta registrado, entonces creamos el nuevo oncologo, mandamos la db y los datos del formulario
     oncologo_creado = OncologoDAO.creat_oncologo(db, datos_oncologo) 
 
     #Una vez creado entonces hacemos el proceso de validación de cuenta, creamos el token a partir del correo electronico
     token_verificar_correo = validaciones_tokens.crear_token_verificar_correo(str(oncologo_creado.id_usuario)) 
+    
     try:
         #Enviamos el correo con el link para la verificación del correo enviado el correo y el token
         verificar_correo.enviar_correo_verificacion(oncologo_creado.correo_electronico, token_verificar_correo)
@@ -132,11 +134,11 @@ def login(datos_oncologo: schema_oncologo.OncologoLogin, response: Response, db:
 
     if not validaciones_tokens.verificar_contrasenia(datos_oncologo.contrasenia, validacion_usuario.contrasenia):
         #Verificamos la contraseña, si es incorrecta entoncces mostramos mensaje, 
-        raise HTTPException(status_code=400, detail="La contraseña es incorrecta")
+        raise HTTPException(status_code=400, detail="La contraseña es incorrecta.")
     
     if not validacion_usuario.es_verificado:
         #Si el correo aun no esta verificado entonces mostramos mensaje
-        raise HTTPException(status_code=403, detail="Correo no verificado")
+        raise HTTPException(status_code=403, detail="Correo no verificado.")
     
     
     #Si no hay errores, creamos el token de acceso donde guardamos el id del correo
@@ -155,7 +157,7 @@ def login(datos_oncologo: schema_oncologo.OncologoLogin, response: Response, db:
         httponly=COOKIE_HTTPONLY,
         secure=COOKIE_SEGURIDAD,
         samesite=COOKIE_SAMESITE,
-        max_age=5 * 60  # 7 dias (en segundos)
+        max_age= 60 * 60 * 24 * 7  # 7 dias (en segundos)
     )
 
     #Si todo salio bien entones regresamos el token y el tipo de token, y el tipo de usuario

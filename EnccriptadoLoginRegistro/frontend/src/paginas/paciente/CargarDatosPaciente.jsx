@@ -154,7 +154,7 @@ export default function PaginaCargarDatosPaciente() {
                     confirmButton: "btn-lg boton-azul"
                 }
             }).then(() => {
-                 //Restauramos los valores de los input
+                //Restauramos los valores de los input
                 api.get(`/paciente/perfil/${id_paciente_seleccionado}`)
                     .then(res => {
                         setNombre(res.data.nombre);
@@ -174,7 +174,7 @@ export default function PaginaCargarDatosPaciente() {
                         alert("Error al cargar los datos");
                     });
                 setModoEdicion(false)
-                
+
             });
         } catch (err) {
             console.log(err.response?.data); // Para ver el detalle exacto del error
@@ -190,7 +190,7 @@ export default function PaginaCargarDatosPaciente() {
 
 
     //Constante de los archivos
-    const [archivoClinico, setArchivoClinico] = useState(null);    
+    const [archivoClinico, setArchivoClinico] = useState(null);
     const [archivoTranscriptomico, setArchivoTranscriptomico] = useState(null);
 
     const handleCambiarArchicoClinico = (e) => {
@@ -257,7 +257,7 @@ export default function PaginaCargarDatosPaciente() {
     };
 
 
-     const handleSubirArchivoTranscriptomico = async () => {
+    const handleSubirArchivoTranscriptomico = async () => {
         if (!archivoTranscriptomico) {
             Swal.fire("Error", "Por favor selecciona un archivo", "error");
             return;
@@ -291,6 +291,37 @@ export default function PaginaCargarDatosPaciente() {
             });
         }
     };
+
+
+
+    //Funcion para obtener el PDF de los resultados
+    const handleGenerarPDF = async () => {
+        try {
+            const res = await api.get(`/paciente/generar-pdf/${id_paciente_seleccionado}`, {
+                responseType: "blob", // <- importante
+            });
+
+            // Crear un enlace temporal
+            const blob = new Blob([res.data], { type: "application/pdf" });
+            const link = document.createElement("a");
+            link.href = window.URL.createObjectURL(blob);
+            link.download = `reporte_paciente_${id_paciente_seleccionado}.pdf`; // nombre del archivo
+            link.click();
+
+            // Liberar el objeto URL temporal
+            window.URL.revokeObjectURL(link.href);
+
+        } catch (err) {
+            Swal.fire({
+                title: "Error",
+                text: err.response?.data?.detail || "No se pudo generar el PDF",
+                icon: "error",
+                confirmButtonColor: "#B3261E",
+            });
+        }
+    };
+
+
 
 
 
@@ -503,6 +534,14 @@ export default function PaginaCargarDatosPaciente() {
                                 </button>
                             </div>
                         </div>
+                    </div>
+                    <div>
+                        <button
+                            onClick={handleGenerarPDF}
+                            className="mt-4 bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                            Generar reporte PDF
+                        </button>
                     </div>
                 </div>
             }

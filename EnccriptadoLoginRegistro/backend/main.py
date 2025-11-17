@@ -1,12 +1,13 @@
 from fastapi import FastAPI
-from modelos import Usuario, Oncologo, Paciente, RefrescarToken
+from modelos import Usuario, Oncologo, Paciente, RefrescarToken, Gen, ExpresionGenica
+from modelosDAO import GenDAO
 from database import engine
 from routers.router_oncologo import router as router_oncologo
 from routers.router_administrador import router as router_administrador
 from routers.router_paciente import router as router_paciente
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
-from validaciones.validaciones_datos import validation_exception_handler
+from validaciones.validaciones_datos import validacion_datos
 
 app = FastAPI()
 
@@ -15,19 +16,24 @@ Usuario.Base.metadata.create_all(bind=engine)
 Oncologo.Base.metadata.create_all(bind=engine)
 Paciente.Base.metadata.create_all(bind=engine)
 RefrescarToken.Base.metadata.create_all(bind=engine)
+Gen.Base.metadata.create_all(bind=engine)
+ExpresionGenica.Base.metadata.create_all(bind=engine)
+
+#Mandamos llenar la bd de los genes
+GenDAO.creat_llenar_diccionario_genes()
 
 
 
 
 # Registramos el manejador de validaciones personalizados
-app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(RequestValidationError, validacion_datos)
 
 
 
-# Configuración CORS (permitir acceso desde React)
+# Configuración CORS para permitir el acceso desde el front de react
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # dominio exacto de tu React
+    allow_origins=["http://localhost:3000"],  # dominio del front
     allow_credentials=True,                  # permite enviar cookies
     allow_methods=["*"],
     allow_headers=["*"],

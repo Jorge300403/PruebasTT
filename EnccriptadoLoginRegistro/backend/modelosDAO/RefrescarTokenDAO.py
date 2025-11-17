@@ -16,7 +16,7 @@ def creat_token_refrescar (db: Session, jti_token: str, id_usuario: int):
         nuevo_token_refrescar = RefrescarToken(
             jti = jti_token,
             usuario_id = id_usuario,
-            expires_at = datetime.utcnow() + timedelta(minutes=5),
+            expires_at = datetime.utcnow() + timedelta(days=7),
             revoked=False
         )
         
